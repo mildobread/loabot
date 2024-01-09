@@ -42,15 +42,14 @@ let functionList = {
     }
 };
 
-function _msg_gptSummary(msg, prompt, token, sender) {
-    if (!(sender in chatList)) chatList[sender] = [{role: "system", content:prompt}];
-
-    chatList[sender].push({role: "user", content: msg});
+function _msg_gptSummary(msg, token, sender) {
     let response;
-
     let data = {
         "model": "gpt-3.5-turbo",
-        "messages": chatList[sender], 
+        "messages": [{
+            "role": "system",
+            "content": "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean"
+        },{"role": "user", "content": msg}],
         "max_tokens": token
     }
 
@@ -65,11 +64,11 @@ function _msg_gptSummary(msg, prompt, token, sender) {
         .replace(/\x00/g,'');
         response = JSON.parse(response);
         let message = response.choices[0].message;
-        chatList[sender].push(message);
         return message.content;
-    } catch (e) {
-        Log.e(e + "\n" + JSON.stringify(response, null, 2));
-        return e;
+    } catch (error) {
+        result = "오류!\n" + error + "\n" + JSON.stringify(response, null, 2);
+        Log.e(error.stack);
+        return result;
     }
 }
 
@@ -81,7 +80,7 @@ function _msg_getChatGPTResponse(msg) {
         "model": "gpt-3.5-turbo",
         "messages": [{
             "role": "system",
-            "content": "당신은 게으름뱅이입니다. 반드시 반말로 건방지고 짧게 150자 이내로 답변해주세요."
+            "content": "너는 게으름뱅이야. 반드시 반말로 건방지고 짧게 150자 이내로 답변해줘."
         },{"role":"user","content":msg}],
         "temperature":0, 
         "max_tokens":192,
@@ -145,7 +144,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier) {
                     },
                     "article": {
                         "type": "string",
-                        "description": "뉴스, 기사 등에 실린 최근 이슈, 근황 eg. 특정인 혹은 특정 주제에 관련/연관된 최근 근황, 토픽, 개봉, 발표, 연구, 소식, 상황, 사건",
+                        "description": "최근 뉴스, 기사 등에 실린 최신 이슈나 근황이 어떻게 되고 있는지, 얼마나 진행중인지 eg. 특정인 혹은 특정 주제에 사회 이슈, 관련된 최근 사건, 동향, 결과, 개봉, 발표, 연구, 소식, 상황, 요새, 어제",
                     },
                     "unit": {
                         "type": "string"
@@ -185,7 +184,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier) {
                     return message;
                 }
                 let prompt = "사용자의 질문: \"" + msg + ".\"";
-                prompt += "다음 검색결과에 기반하여 사용자의 질문에 반드시 반말로 답변해주고, 답변의 마지막에는 링크를 알려줘.\n"
+                prompt += "다음 검색결과에 기반하여 사용자의 질문에 반드시 귀찮은 티를 내며 반말로 답변해주고, 답변의 마지막에는 링크를 알려줘.\n"
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt);
             }
@@ -201,7 +200,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier) {
                     return message;
                 }
                 let prompt = "사용자의 질문: \"" + msg + ".\"";
-                prompt += "다음 검색결과에 기반하여 사용자의 질문에 반드시 반말로 답변해줘.\n"
+                prompt += "다음 검색결과에 기반하여 사용자의 질문에 반드시 귀찮은 티를 내며 반말로 답변해줘.\n"
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt);
             }
@@ -225,7 +224,7 @@ function _msg_getChatGPTFunctionCallingResponse(msg) {
         "model": "gpt-3.5-turbo",
         "messages": [{
             "role": "system",
-            "content": "당신은 게으름뱅이입니다. 반드시 반말로 건방지고 짧게 150자 이내로 답변해주세요."
+            "content": "너는 게으름뱅이야. 반드시 반말로 건방지고 짧게 150자 이내로 답변해줘."
         },{"role":"user","content":msg}],
         "temperature":0, 
         "max_tokens":192,

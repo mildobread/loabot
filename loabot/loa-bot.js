@@ -53,50 +53,6 @@ function onNotificationPosted(sbn, sm) {
     }
 }
 
-let functionList = {
-    kakaoSearchLocal: function(query) {
-        let response = org.jsoup.Jsoup.connect("https://dapi.kakao.com/v2/local/search/keyword.json?query=" + query + "&size=5")
-          .header("Authorization", "KakaoAK " + KAKAO_API_KEY)
-          .ignoreContentType(true)
-          .ignoreHttpErrors(true)
-          .get().text();
-        response = JSON.parse(response);
-        let searchListLength = response["documents"].length;
-        let index = Math.floor(Math.random() * (searchListLength));
-        let place = response["documents"][index];
-        let message = "";
-        //let message = "index: " + index + ", searchListLength: " + searchListLength + "\n";
-        if (place == null) {
-            return null;
-        }
-        message += "장소: " + place["place_name"] + "\n";
-        message += "카테고리: " + place["category_group_name"] + "\n";
-        message += "세부분류: " + place["category_name"] + "\n";
-        message += "주소: " + place["address_name"] + "\n";
-        message += "전화번호: " + place["phone"] + "\n";
-        message += "링크: " + place["place_url"];
-        return message;
-    },
-    naverSearchNews: function(query) {
-        let apiUrl = "https://openapi.naver.com/v1/search/news?query=" + query + "&display=10&sort=sim";
-        let okhttpClient = new OkHttpClient();
-        let request = new Request.Builder()
-          .url(apiUrl)
-          .header("X-Naver-Client-Id", NAVER_CID)
-          .header("X-Naver-Client-Secret", NAVER_CSC)
-          .build();
-        let responseStr = okhttpClient.newCall(request).execute().body().string();
-        response = JSON.parse(responseStr);
-        let searchListLength = response["items"].length;
-        let index = Math.floor(Math.random() * (searchListLength));
-        let message = "";
-        message += response["items"][index]["title"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
-        message += response["items"][index]["description"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
-        message += response["items"][index]["link"];
-        return message;
-    }
-};
-
 var msgList_1 = [];
 
 function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, isMultiChat) {
@@ -116,14 +72,14 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         return;
     }
 
-    if(room == "akd") {
+    if (room == "akd") {
         msgList_1.push(sender + " : " + msg);
         if(msgList_1.length >= 100) {
             msgList_1.shift();
         }
         if(msg == "!요약") {
             replier.reply("요약중...");
-            var content = gptApi.msg_gptSummary(msgList_1.join("\n"), "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean", 300, sender);
+            var content = gptApi.msg_gptSummary(msgList_1.join("\n"), 300, sender);
             replier.reply("대화내용 요약" + "\u200b".repeat(500) + "\n\n" + content);
             return;
         }
