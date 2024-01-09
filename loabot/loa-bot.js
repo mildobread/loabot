@@ -1,9 +1,12 @@
 importPackage(android.graphics);
+importPackage(Packages.okhttp3);
 
-const API_KEY = "";
-const GPT_API_KEY = "";
-const NAVER_CID = ""
-const NAVER_CSC = ""
+const keys = require('apiKeys.js');
+const LOA_API_KEY = keys.LOA_API_KEY;
+const GPT_API_KEY = keys.GPT_API_KEY;
+const NAVER_CID = keys.NAVER_CID;
+const NAVER_CSC = keys.NAVER_CSC;
+const KAKAO_API_KEY = keys.KAKAO_API_KEY;
 
 const CHARACTER_TYPE = 0;
 const EVENT_TYPE = 1;
@@ -46,22 +49,45 @@ function onNotificationPosted(sbn, sm) {
 }
 
 let functionList = {
-    naverSearchLocal: function(query) {
-        let response = org.jsoup.Jsoup.connect("https://openapi.naver.com/v1/search/local.json?query=" + query + "&display=5&sort=random")
-          .header('X-Naver-Client-Id', NAVER_CID)
-          .header('X-Naver-Client-Secret', NAVER_CSC)
+    kakaoSearchLocal: function(query) {
+        let response = org.jsoup.Jsoup.connect("https://dapi.kakao.com/v2/local/search/keyword.json?query=" + query + "&size=5")
+          .header("Authorization", "KakaoAK " + KAKAO_API_KEY)
           .ignoreContentType(true)
           .ignoreHttpErrors(true)
           .get().text();
-        response = JSON.parse(response); // JSON.stringify(response)
+        response = JSON.parse(response);
+        let searchListLength = response["documents"].length;
+        let index = Math.floor(Math.random() * (searchListLength));
+        let place = response["documents"][index];
         let message = "";
+        //let message = "index: " + index + ", searchListLength: " + searchListLength + "\n";
+        if (place == null) {
+            return null;
+        }
+        message += "장소: " + place["place_name"] + "\n";
+        message += "카테고리: " + place["category_group_name"] + "\n";
+        message += "세부분류: " + place["category_name"] + "\n";
+        message += "주소: " + place["address_name"] + "\n";
+        message += "전화번호: " + place["phone"] + "\n";
+        message += "링크: " + place["place_url"];
+        return message;
+    },
+    naverSearchNews: function(query) {
+        let apiUrl = "https://openapi.naver.com/v1/search/news?query=" + query + "&display=10&sort=sim";
+        let okhttpClient = new OkHttpClient();
+        let request = new Request.Builder()
+          .url(apiUrl)
+          .header("X-Naver-Client-Id", NAVER_CID)
+          .header("X-Naver-Client-Secret", NAVER_CSC)
+          .build();
+        let responseStr = okhttpClient.newCall(request).execute().body().string();
+        response = JSON.parse(responseStr);
         let searchListLength = response["items"].length;
-        let index = Math.floor(Math.random() * (searchListLength + 1));
-        let spot = response["items"][index];
-        message += spot["title"] + '\n';
-        message += spot["category"] + '\n';
-        message += spot["address"] + '\n';
-        message += "위치: https://m.map.naver.com/search2/search.naver?query=" + spot["address"].replace(/ /g, '%20');
+        let index = Math.floor(Math.random() * (searchListLength));
+        let message = "";
+        message += response["items"][index]["title"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
+        message += response["items"][index]["description"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
+        message += response["items"][index]["link"];
         return message;
     }
 };
@@ -72,14 +98,21 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     // GPT
     if (msg.startsWith("!밀도야 ")) {
         var prompt = msg.substr(5);
-        replier.reply(msg_getChatGPTResponse(prompt));
+        var message = msg_getChatGPTResponse(prompt);
+        //var message = msg_getChatGPTFunctionCalling(prompt, replier)
+        replier.reply(message);
         return;
     }
 
     if (msg.startsWith("/")) {
         var prompt = msg.substr(1);
-        var message = msg_getChatGPTFunctionCalling(prompt)
-        //var message = functionList["naverSearchLocal"](prompt);
+        // if (room == "Mine") {
+        //     var message = functionList["naverSearchNews"](prompt);
+        //     replier.reply(message);
+        //     return;
+        // }
+        var message = msg_getChatGPTFunctionCalling(prompt, replier)
+        //var message = functionList["kakaoSearchLocal"](prompt);
         replier.reply(message);
         return;
     }
@@ -176,25 +209,6 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         message = msg_nullCmd();
     }
     replier.reply(message);
-}
-
-function naverSearchLocal(query) {
-    let response = org.jsoup.Jsoup.connect("https://openapi.naver.com/v1/search/local.json?query=" + query + "&display=5&sort=random")
-      .header('X-Naver-Client-Id', NAVER_CID)
-      .header('X-Naver-Client-Secret', NAVER_CSC)
-      .ignoreContentType(true)
-      .ignoreHttpErrors(true)
-      .get().text();
-      response = JSON.parse(response); // JSON.stringify(response)
-    let message = "";
-    let searchListLength = response["items"].length;
-    let index = Math.floor(Math.random() * (searchListLength + 1));
-    let spot = response["items"][index];
-    message += spot["title"] + '\n';
-    message += spot["category"] + '\n';
-    message += spot["address"] + '\n';
-    message += "지도 정보: https://m.map.naver.com/search2/search.naver?query=" + spot["address"].replace(/ /g, '%20');
-    return message;
 }
 
 function msg_gptSummary(msg, prompt, token, sender) {
@@ -427,7 +441,7 @@ function msg_getChatGPTResponse(msg) {
         "model": "gpt-3.5-turbo",
         "messages": [{
             "role": "system",
-            "content": "당신은 모든 분야의 전문가입니다. 친근하고 짧게 150자 이내로 답변해주세요."
+            "content": "당신은 게으름뱅이입니다. 반드시 반말로 건방지고 짧게 150자 이내로 답변해주세요."
         },{"role":"user","content":msg}],
         "temperature":0, 
         "max_tokens":192,
@@ -450,7 +464,7 @@ function msg_getChatGPTResponse(msg) {
     return result;
 }
 
-function msg_getChatGPTFunctionCalling(msg) {
+function msg_getChatGPTFunctionCalling(msg, replier) {
     let message = "";
     let data = {
         "model": "gpt-3.5-turbo-0613",
@@ -459,7 +473,7 @@ function msg_getChatGPTFunctionCalling(msg) {
             "content": "null"
         },{"role":"user","content":msg}],
         "functions": [{
-            "name": "naverSearchLocal",
+            "name": "kakaoSearchLocal",
             "description": "특정 지역에 존재하는 맛집, 음식점, 병원, 마트, 여행지, 영화관, 산책로, 드라이브 코스, 데이트 코스, 주말에 놀러 갈만한 곳 등 다양한 장소에 대한 정보를 얻어야합니다.",
             "parameters": {
                 "type": "object",
@@ -478,10 +492,31 @@ function msg_getChatGPTFunctionCalling(msg) {
                 },
                 "required": ["location", "place"],
             },
-        },],
+        },
+        {
+            "name": "naverSearchNews",
+            "description": "특정 주제에 대한 뉴스 기사 정보를 얻어야합니다.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "subject": {
+                        "type": "string",
+                        "description": "특정인 혹은 특정 주제 eg. 경제, 세계, 영화, 생활, 문화, 기술, IT, 연예, 스포츠, 정치, 사회 등",
+                    },
+                    "article": {
+                        "type": "string",
+                        "description": "뉴스, 기사 등에 실린 최근 이슈, 근황 eg. 특정인 혹은 특정 주제에 관련/연관된 최근 근황, 토픽, 개봉, 발표, 연구, 소식, 상황, 사건",
+                    },
+                    "unit": {
+                        "type": "string"
+                    },
+                },
+                "required": ["subject", "article"],
+            },
+        }],
         "function_call": "auto",
         "temperature":0, 
-        "max_tokens":192,
+        "max_tokens":256,
         "top_p":1, 
         "frequency_penalty": 0.0, 
         "presence_penalty":0.0
@@ -495,23 +530,44 @@ function msg_getChatGPTFunctionCalling(msg) {
         let jsonData = JSON.parse(response.text()); // return JSON.stringify(jsonData);
         let functionToCall = jsonData.choices[0].message['function_call'];
         if (functionToCall) {
+            replier.reply("(짱구 굴리는중...)");
             let searchingResult = JSON.stringify(functionToCall["arguments"]);
             let functionName = functionToCall["name"];
-            if (functionName == 'naverSearchLocal') {
+            if (functionName == 'kakaoSearchLocal') {
                 let location = JSON.parse(functionToCall.arguments).location;
                 let place = JSON.parse(functionToCall.arguments).place;
-                //let debug = JSON.stringify(jsonData.choices[0].message);  // for debug
-                //message += debug + '\n';                                  // for debug
-                //message += "searching result: " + searchingResult + "\n"; // for debug
-                searchingResult += functionList[functionName](location + " " + place + "\n"); // Naver에서 지역 + 장소 검색
+                // let debug = JSON.stringify(jsonData.choices[0].message);  // for debug
+                // message += debug + '\n';                                  // for debug
+                // message += "searching result: " + searchingResult + "\n"; // for debug
+                searchingResult += functionList[functionName](location + " " + place + "\n"); // kakao map에서 지역 + 장소 검색
+                if (searchingResult == null) {
+                    message += msg_getChatGPTResponse(msg);
+                    return message;
+                }
                 let prompt = "사용자의 질문: \"" + msg + ".\"";
-                prompt += "다음 검색결과에 기반하여 사용자의 질문에 답변해주고, 답변의 마지막에는 naver map 지도 링크를 알려주세요.\n"
+                prompt += "다음 검색결과에 기반하여 사용자의 질문에 반드시 반말로 답변해주고, 답변의 마지막에는 링크를 알려줘.\n"
+                prompt += "검색결과: \"" + searchingResult + "\"";
+                message += msg_getChatGPTFunctionCallingResponse(prompt);
+            }
+            else if (functionName == 'naverSearchNews') {
+                let subject = JSON.parse(functionToCall.arguments).subject;
+                let article = JSON.parse(functionToCall.arguments).article;
+                // let debug = JSON.stringify(jsonData.choices[0].message);  // for debug
+                // message += debug + '\n';                                  // for debug
+                // message += "searching result: " + searchingResult + "\n"; // for debug
+                searchingResult += functionList[functionName](subject + " " + article + "\n"); // 네이버 뉴스에서 검색
+                if (searchingResult == null) {
+                    message += msg_getChatGPTResponse(msg);
+                    return message;
+                }
+                let prompt = "사용자의 질문: \"" + msg + ".\"";
+                prompt += "다음 검색결과에 기반하여 사용자의 질문에 반드시 반말로 답변해줘.\n"
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += msg_getChatGPTFunctionCallingResponse(prompt);
             }
         }
         else {
-            message += "no function to call.\n";
+            //message += "no function to call.\n";
             message += msg_getChatGPTResponse(msg);
         }
     } catch(error){
@@ -529,7 +585,7 @@ function msg_getChatGPTFunctionCallingResponse(msg) {
         "model": "gpt-3.5-turbo",
         "messages": [{
             "role": "system",
-            "content": "당신은 모든 분야의 전문가입니다. 친근하고 짧게 150자 이내로 답변해주세요."
+            "content": "당신은 게으름뱅이입니다. 반드시 반말로 건방지고 짧게 150자 이내로 답변해주세요."
         },{"role":"user","content":msg}],
         "temperature":0, 
         "max_tokens":192,
@@ -798,7 +854,7 @@ function getMarketPrice(CategoryCode, ItemName) {
     var url = "https://developer-lostark.game.onstove.com/markets/items"
     var response = org.jsoup.Jsoup.connect(url)
     .header("Content-Type", "application/json")
-    .header("authorization", 'bearer ' + API_KEY)
+    .header("authorization", 'bearer ' + LOA_API_KEY)
     .requestBody(JSON.stringify({
         "Sort": "GRADE",
         "CategoryCode": CategoryCode,
@@ -821,7 +877,7 @@ function getGemPrice(gem_name) {
     var url = "https://developer-lostark.game.onstove.com/auctions/items"
     var response = org.jsoup.Jsoup.connect(url)
     .header("Content-Type", "application/json")
-    .header("authorization", 'bearer ' + API_KEY)
+    .header("authorization", 'bearer ' + LOA_API_KEY)
     .requestBody(JSON.stringify({
             "ItemLevelMin": 0,
             "ItemLevelMax": 0,
@@ -879,7 +935,7 @@ function msg_nullCmd(user_name) {
 function getData(url) {
     var data = org.jsoup.Jsoup.connect(url)
     .header("accept", "application/json")
-    .header("authorization", 'bearer ' + API_KEY)
+    .header("authorization", 'bearer ' + LOA_API_KEY)
     .ignoreContentType(true)
     .ignoreHttpErrors(true)
     .get().text();
