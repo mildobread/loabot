@@ -188,6 +188,10 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             if (functionName == 'kakaoSearchLocal') {
                 let location = JSON.parse(functionToCall.arguments).location;
                 let place = JSON.parse(functionToCall.arguments).place;
+                if (location == "연남동" && (place == "맛집" || place == "음식점" || place == "식당" || place == "덮밥집")) {
+                    if (Math.random() <= 0.35)
+                    place = "연남하라";
+                }
                 searchingResult += functionList[functionName](location + " " + place + "\n"); // kakao map에서 지역 + 장소 검색
                 if (searchingResult == null) {
                     message += _msg_getChatGPTResponse(msg, style);
