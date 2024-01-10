@@ -89,6 +89,12 @@ function adminMildo(room, msg, sender) {
 }
 
 function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, isMultiChat) {
+    // // test
+    // if (room == "Mine") {
+    //     var message = testfunction(msg);
+    //     replier.reply(message);
+    //     return;
+    // }
 
     // GPT - admin
     var command = adminMildo(room, msg, sender);

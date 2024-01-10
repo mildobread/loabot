@@ -53,6 +53,41 @@ let functionList = {
         message += response["items"][index]["description"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
         message += response["items"][index]["link"];
         return message;
+    },
+    naverSearchShopping: function(query) {
+        let apiUrl = "https://openapi.naver.com/v1/search/shop?query=" + query + "&display=5&sort=sim";
+        let okhttpClient = new OkHttpClient();
+        let request = new Request.Builder()
+          .url(apiUrl)
+          .header("X-Naver-Client-Id", NAVER_CID)
+          .header("X-Naver-Client-Secret", NAVER_CSC)
+          .build();
+        let responseStr = okhttpClient.newCall(request).execute().body().string();
+        response = JSON.parse(responseStr);
+        let searchListLength = response["items"].length;
+        let index = Math.floor(Math.random() * (searchListLength));
+        let message = "";
+        message += response["items"][index]["title"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
+        message += response["items"][index]["link"];
+        return message;
+    },
+    naverSearchFlight: function(query) {
+        let apiUrl = "https://openapi.naver.com/v1/search/webkr?query=" + query + "&display=3&sort=sim";
+        let okhttpClient = new OkHttpClient();
+        let request = new Request.Builder()
+          .url(apiUrl)
+          .header("X-Naver-Client-Id", NAVER_CID)
+          .header("X-Naver-Client-Secret", NAVER_CSC)
+          .build();
+        let responseStr = okhttpClient.newCall(request).execute().body().string();
+        response = JSON.parse(responseStr);
+        let searchListLength = response["items"].length;
+        let index = Math.floor(Math.random() * (searchListLength));
+        let message = "";
+        message += response["items"][index]["title"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
+        message += response["items"][index]["description"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
+        message += response["items"][index]["link"];
+        return message;
     }
 };
 
@@ -145,8 +180,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 },
                 "required": ["location", "place"],
             },
-        },
-        {
+        },{
             "name": "naverSearchNews",
             "description": "특정 주제에 대한 뉴스 기사 정보를 얻어야합니다.",
             "parameters": {
@@ -165,6 +199,50 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                     },
                 },
                 "required": ["subject", "article"],
+            },
+        },{
+            "name": "naverSearchShopping",
+            "description": "특정 물건에 대해 구매처와 가격 정보 최저가/최고가를 찾아야합니다.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "product": {
+                        "type": "string",
+                        "description": "특정 상품 및 물건 eg. 삼성 냉장고, 컴퓨터, 여성 후드티, 그래픽카드, 버버리 지갑, 무신사 맨투맨, 나이키 바지, 뉴발란스 신발, 프라다 가방",
+                    },
+                    "price": {
+                        "type": "string",
+                        "description": "특정 상품의 가격에 대한 정보 eg. 최고가, 추천, 최저가, 가격, 얼마, 사려면, 구매, 장만하려는데, 싸게, 어떤게 좋아?, 어디서",
+                    },
+                    "unit": {
+                        "type": "string"
+                    },
+                },
+                "required": ["product", "price"],
+            },
+        },{
+            "name": "naverSearchFlight",
+            "description": "항공편 정보. 특정 날짜에 출발지에서 목적지까지 이동하는 항공권 정보를 찾아야합니다.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "description": "날짜 eg. 2월 13일, 3/12일, 8월19일 등",
+                    },
+                    "departures": {
+                        "type": "string",
+                        "description": "출발지 eg. 인천, 인천공항, 김포, 김포공항",
+                    },
+                    "arrivals": {
+                        "type": "string",
+                        "description": "목적지 eg. 일본, 미국, 삿포로, 세부 공항, 오사카",
+                    },
+                    "unit": {
+                        "type": "string"
+                    },
+                },
+                "required": ["date", "arrivals"],
             },
         }],
         "function_call": "auto",
@@ -213,6 +291,38 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 }
                 let prompt = "사용자의 질문: \"" + msg + ".\"";
                 prompt += PERSONALITY_RESPONSE_FC[style] + "\n";
+                prompt += "검색결과: \"" + searchingResult + "\"";
+                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
+            }
+            else if (functionName == 'naverSearchShopping') {
+                let product = JSON.parse(functionToCall.arguments).product;
+                let price = JSON.parse(functionToCall.arguments).price;
+                searchingResult += functionList[functionName](product + "\n"); // 네이버 쇼핑에서 검색
+                if (searchingResult == null) {
+                    message += _msg_getChatGPTResponse(msg, style);
+                    return message;
+                }
+                let prompt = "사용자의 질문: \"" + msg + ".\"";
+                prompt += PERSONALITY_RESPONSE_FC[style] + "답변의 마지막에는 반드시 검색결과에 포함된 링크를 알려줘.\n";
+                prompt += "검색결과: \"" + searchingResult + "\"";
+                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
+            }
+            else if (functionName == 'naverSearchFlight') {
+                let date = JSON.parse(functionToCall.arguments).date;
+                let departures = JSON.parse(functionToCall.arguments).departures;
+                let arrivals = JSON.parse(functionToCall.arguments).arrivals;
+                if (departures) {
+                    searchingResult += functionList[functionName](date + " " + departures + "에서 출발하는 " + arrivals + " 항공권\n"); // Web 검색
+                }
+                else {
+                    searchingResult += functionList[functionName](date + " " + "에 출발하는 " + arrivals + " 항공권\n"); // Web 검색
+                }
+                if (searchingResult == null) {
+                    message += _msg_getChatGPTResponse(msg, style);
+                    return message;
+                }
+                let prompt = "사용자의 질문: \"" + msg + ".\"";
+                prompt += PERSONALITY_RESPONSE_FC[style] + "답변의 마지막에는 반드시 검색결과에 포함된 링크를 알려줘.\n";
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
             }
