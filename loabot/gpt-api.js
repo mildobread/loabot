@@ -188,9 +188,6 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             if (functionName == 'kakaoSearchLocal') {
                 let location = JSON.parse(functionToCall.arguments).location;
                 let place = JSON.parse(functionToCall.arguments).place;
-                // let debug = JSON.stringify(jsonData.choices[0].message);  // for debug
-                // message += debug + '\n';                                  // for debug
-                // message += "searching result: " + searchingResult + "\n"; // for debug
                 searchingResult += functionList[functionName](location + " " + place + "\n"); // kakao map에서 지역 + 장소 검색
                 if (searchingResult == null) {
                     message += _msg_getChatGPTResponse(msg, style);
@@ -204,9 +201,6 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             else if (functionName == 'naverSearchNews') {
                 let subject = JSON.parse(functionToCall.arguments).subject;
                 let article = JSON.parse(functionToCall.arguments).article;
-                // let debug = JSON.stringify(jsonData.choices[0].message);  // for debug
-                // message += debug + '\n';                                  // for debug
-                // message += "searching result: " + searchingResult + "\n"; // for debug
                 searchingResult += functionList[functionName](subject + " " + article + "\n"); // 네이버 뉴스에서 검색
                 if (searchingResult == null) {
                     message += _msg_getChatGPTResponse(msg, style);
