@@ -1,3 +1,16 @@
+PERSONALITY_SUMMARY = {
+    "lazy": "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean.",
+    "kind": "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean."
+};
+PERSONALITY_RESPONSE = {
+    "lazy": "너는 게으름뱅이야. 반드시 반말로 건방지고 짧게 150자 이내로 답변해줘.",
+    "kind": "당신은 모든 분야의 전문가입니다. 친근하고 짧게 150자 이내로 답변해주세요."
+};
+PERSONALITY_RESPONSE_FC = {
+    "lazy": "다음 검색결과에 기반하여 사용자의 질문에 반드시 귀찮은 티를 내며 반말로 답변해줘.",
+    "kind": "당신은 모든 분야의 전문가입니다. 친근하고 짧게 150자 이내로 답변해주세요."
+};
+
 let functionList = {
     kakaoSearchLocal: function(query) {
         let response = org.jsoup.Jsoup.connect("https://dapi.kakao.com/v2/local/search/keyword.json?query=" + query + "&size=5")
@@ -42,13 +55,13 @@ let functionList = {
     }
 };
 
-function _msg_gptSummary(msg, token, sender) {
+function _msg_gptSummary(msg, token, sender, style) {
     let response;
     let data = {
         "model": "gpt-3.5-turbo",
         "messages": [{
             "role": "system",
-            "content": "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean"
+            "content": PERSONALITY_SUMMARY[style]
         },{"role": "user", "content": msg}],
         "max_tokens": token
     }
@@ -72,7 +85,7 @@ function _msg_gptSummary(msg, token, sender) {
     }
 }
 
-function _msg_getChatGPTResponse(msg) {
+function _msg_getChatGPTResponse(msg, style) {
     let json;
     let result;
 
@@ -80,7 +93,7 @@ function _msg_getChatGPTResponse(msg) {
         "model": "gpt-3.5-turbo",
         "messages": [{
             "role": "system",
-            "content": "너는 게으름뱅이야. 반드시 반말로 건방지고 짧게 150자 이내로 답변해줘."
+            "content": PERSONALITY_RESPONSE[style]
         },{"role":"user","content":msg}],
         "temperature":0, 
         "max_tokens":192,
@@ -103,7 +116,7 @@ function _msg_getChatGPTResponse(msg) {
     return result;
 }
 
-function _msg_getChatGPTFunctionCalling(msg, replier) {
+function _msg_getChatGPTFunctionCalling(msg, replier, style) {
     let message = "";
     let data = {
         "model": "gpt-3.5-turbo-0613",
@@ -180,13 +193,13 @@ function _msg_getChatGPTFunctionCalling(msg, replier) {
                 // message += "searching result: " + searchingResult + "\n"; // for debug
                 searchingResult += functionList[functionName](location + " " + place + "\n"); // kakao map에서 지역 + 장소 검색
                 if (searchingResult == null) {
-                    message += _msg_getChatGPTResponse(msg);
+                    message += _msg_getChatGPTResponse(msg, style);
                     return message;
                 }
                 let prompt = "사용자의 질문: \"" + msg + ".\"";
-                prompt += "다음 검색결과에 기반하여 사용자의 질문에 반드시 귀찮은 티를 내며 반말로 답변해주고, 답변의 마지막에는 링크를 알려줘.\n"
+                prompt += PERSONALITY_RESPONSE_FC[style] + "답변의 마지막에는 링크를 알려줘.\n";
                 prompt += "검색결과: \"" + searchingResult + "\"";
-                message += _msg_getChatGPTFunctionCallingResponse(prompt);
+                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
             }
             else if (functionName == 'naverSearchNews') {
                 let subject = JSON.parse(functionToCall.arguments).subject;
@@ -196,18 +209,18 @@ function _msg_getChatGPTFunctionCalling(msg, replier) {
                 // message += "searching result: " + searchingResult + "\n"; // for debug
                 searchingResult += functionList[functionName](subject + " " + article + "\n"); // 네이버 뉴스에서 검색
                 if (searchingResult == null) {
-                    message += _msg_getChatGPTResponse(msg);
+                    message += _msg_getChatGPTResponse(msg, style);
                     return message;
                 }
                 let prompt = "사용자의 질문: \"" + msg + ".\"";
-                prompt += "다음 검색결과에 기반하여 사용자의 질문에 반드시 귀찮은 티를 내며 반말로 답변해줘.\n"
+                prompt += PERSONALITY_RESPONSE_FC[style] + "\n";
                 prompt += "검색결과: \"" + searchingResult + "\"";
-                message += _msg_getChatGPTFunctionCallingResponse(prompt);
+                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
             }
         }
         else {
             //message += "no function to call.\n";
-            message += _msg_getChatGPTResponse(msg);
+            message += _msg_getChatGPTResponse(msg, style);
         }
     } catch(error){
         result = error + "\n" + error.stack;
@@ -216,7 +229,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier) {
     return message;
 }
 
-function _msg_getChatGPTFunctionCallingResponse(msg) {
+function _msg_getChatGPTFunctionCallingResponse(msg, style) {
     let json;
     let result;
 
@@ -224,7 +237,7 @@ function _msg_getChatGPTFunctionCallingResponse(msg) {
         "model": "gpt-3.5-turbo",
         "messages": [{
             "role": "system",
-            "content": "너는 게으름뱅이야. 반드시 반말로 건방지고 짧게 150자 이내로 답변해줘."
+            "content": PERSONALITY_RESPONSE[style]
         },{"role":"user","content":msg}],
         "temperature":0, 
         "max_tokens":192,

@@ -54,12 +54,41 @@ function onNotificationPosted(sbn, sm) {
 }
 
 var msgList_1 = [];
+var style = "lazy";
+
+function adminMildo(room, msg, sender) {
+    // GPT - admin
+    if (msg.startsWith("/") && room == "Mine") {
+        var prompt = msg.substr(1);
+        var message = "";
+        if (prompt == "lazy") {
+            style = "lazy";
+            message += "매운맛 밀도 세팅 완료."
+        }
+        else if (prompt == "kind") {
+            style = "kind";
+            message += "순한맛 밀도 세팅 완료."
+        }
+        return message;
+    }
+    else {
+        return null;
+    }
+}
 
 function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, isMultiChat) {
+
+    // GPT - admin
+    var command = adminMildo(room, msg, sender);
+    if (command) {
+        replier.reply(command);
+        return;
+    }
+
     // GPT
     if (msg.startsWith("!밀도야 ")) {
         var prompt = msg.substr(5);
-        var message = gptApi.msg_getChatGPTResponse(prompt);
+        var message = gptApi.msg_getChatGPTResponse(prompt, style);
         replier.reply(message);
         return;
     }
@@ -67,7 +96,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     // GPT - function calling
     if (msg.startsWith("/")) {
         var prompt = msg.substr(1);
-        var message = gptApi.msg_getChatGPTFunctionCalling(prompt, replier)
+        var message = gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
         replier.reply(message);
         return;
     }
@@ -79,7 +108,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         }
         if(msg == "!요약") {
             replier.reply("요약중...");
-            var content = gptApi.msg_gptSummary(msgList_1.join("\n"), 300, sender);
+            var content = gptApi.msg_gptSummary(msgList_1.join("\n"), 300, sender, style);
             replier.reply("대화내용 요약" + "\u200b".repeat(500) + "\n\n" + content);
             return;
         }
