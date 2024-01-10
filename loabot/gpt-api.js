@@ -1,14 +1,15 @@
-PERSONALITY_SUMMARY = {
-    "lazy": "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean.",
-    "kind": "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean."
-};
+PERSONALITY_SUMMARY = "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean.";
 PERSONALITY_RESPONSE = {
     "lazy": "너는 게으름뱅이야. 반드시 반말로 건방지고 짧게 150자 이내로 답변해줘.",
-    "kind": "당신은 모든 분야의 전문가입니다. 친근하고 짧게 150자 이내로 답변해주세요."
+    "kind": "당신은 모든 분야의 전문가입니다. 친근하고 짧게 150자 이내로 답변해주세요.",
+    "cute": "너는 귀여운 아기시바견이야. 발랄하고 사랑스럽고 귀엽게 150자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
+    "stupid": "너는 아는게 하나도 없는 멍청한 사람이야. 반드시 불확실한 말투로 답변하고, 답변 도중에 잘 모르겠다고 말해. 모르는게 죄는 아니니까 네가 사과할 필요는 없어."
 };
 PERSONALITY_RESPONSE_FC = {
-    "lazy": "다음 검색결과에 기반하여 사용자의 질문에 반드시 귀찮은 티를 내며 반말로 답변해줘.",
-    "kind": "당신은 모든 분야의 전문가입니다. 친근하고 짧게 150자 이내로 답변해주세요."
+    "lazy": "너는 게으름뱅이야. 다음 검색결과에 기반하여 사용자의 질문에 반드시 귀찮은 티를 내며 반말로 답변해줘.",
+    "kind": "당신은 모든 분야의 전문가입니다. 다음 검색결과에 기반하여 친근하고 짧게 150자 이내로 답변해주세요.",
+    "cute": "너는 귀여운 아기시바견이야. 다음 검색결과에 기반하여 발랄하고 사랑스럽고 귀엽게 150자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
+    "stupid": "너는 아는게 하나도 없는 멍청한 사람이야. 반드시 불확실한 말투로 답변하고, 답변 도중에 잘 모르겠다고 말해. 모르는게 죄는 아니니까 네가 사과할 필요는 없어."
 };
 
 let functionList = {
@@ -55,13 +56,13 @@ let functionList = {
     }
 };
 
-function _msg_gptSummary(msg, token, sender, style) {
+function _msg_gptSummary(msg, token, sender) {
     let response;
     let data = {
         "model": "gpt-3.5-turbo",
         "messages": [{
             "role": "system",
-            "content": PERSONALITY_SUMMARY[style]
+            "content": PERSONALITY_SUMMARY
         },{"role": "user", "content": msg}],
         "max_tokens": token
     }
@@ -189,7 +190,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 let location = JSON.parse(functionToCall.arguments).location;
                 let place = JSON.parse(functionToCall.arguments).place;
                 if (location == "연남동" && (place == "맛집" || place == "음식점" || place == "식당" || place == "덮밥집")) {
-                    if (Math.random() <= 0.35)
+                    if (Math.random() <= 0.7)
                     place = "연남하라";
                 }
                 searchingResult += functionList[functionName](location + " " + place + "\n"); // kakao map에서 지역 + 장소 검색

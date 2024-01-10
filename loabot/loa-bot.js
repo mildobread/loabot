@@ -58,16 +58,28 @@ var style = "lazy";
 
 function adminMildo(room, msg, sender) {
     // GPT - admin
-    if (msg.startsWith("/") && room == "Mine") {
-        var prompt = msg.substr(1);
+    if (msg.startsWith("/") && (sender == "Mine" || sender == "낙지볶음" || sender == "니나브/밀도식빵/블레이드")) {
+        var personality = msg.substr(1);
         var message = "";
-        if (prompt == "lazy") {
-            style = "lazy";
-            message += "매운맛 밀도 세팅 완료."
+        if (personality == "lazy") {
+            style = personality;
+            message += "매운맛 밀도 세팅 완료.";
         }
-        else if (prompt == "kind") {
-            style = "kind";
-            message += "순한맛 밀도 세팅 완료."
+        else if (personality == "kind") {
+            style = personality;
+            message += "순한맛 밀도 세팅 완료.";
+        }
+        else if (personality == "cute") {
+            style = personality;
+            message += "귀여운 밀도 세팅 완료.";
+        }
+        else if (personality == "stupid") {
+            style = personality;
+            message += "멍청한 밀도 세팅 완료.";
+        }
+        else {
+            message += "세팅할 수 없는 성격입니다.";
+            return null;
         }
         return message;
     }
@@ -108,7 +120,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         }
         if(msg == "!요약") {
             replier.reply("요약중...");
-            var content = gptApi.msg_gptSummary(msgList_1.join("\n"), 300, sender, style);
+            var content = gptApi.msg_gptSummary(msgList_1.join("\n"), 300, sender);
             replier.reply("대화내용 요약" + "\u200b".repeat(500) + "\n\n" + content);
             return;
         }
