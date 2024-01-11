@@ -12,6 +12,8 @@ const GPT_API_KEY = keys.GPT_API_KEY;
 const NAVER_CID = keys.NAVER_CID;
 const NAVER_CSC = keys.NAVER_CSC;
 const KAKAO_API_KEY = keys.KAKAO_API_KEY;
+const GGL_API_KEY = keys.GGL_API_KEY;
+const GGL_SID = keys.GGL_SID
 
 const CHARACTER_TYPE = 0;
 const EVENT_TYPE = 1;
@@ -106,18 +108,19 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     // GPT
     if (msg.startsWith("!밀도야 ")) {
         var prompt = msg.substr(5);
-        var message = gptApi.msg_getChatGPTResponse(prompt, style);
+        //var message = gptApi.msg_getChatGPTResponse(prompt, style);
+        var message = gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
         replier.reply(message);
         return;
     }
 
     // GPT - function calling
-    if (msg.startsWith("/")) {
-        var prompt = msg.substr(1);
-        var message = gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
-        replier.reply(message);
-        return;
-    }
+    // if (msg.startsWith("/")) {
+    //     var prompt = msg.substr(1);
+    //     var message = gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
+    //     replier.reply(message);
+    //     return;
+    // }
 
     if (room == "akd") {
         msgList_1.push(sender + " : " + msg);

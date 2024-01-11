@@ -71,25 +71,41 @@ let functionList = {
         message += response["items"][index]["link"];
         return message;
     },
-    naverSearchFlight: function(query) {
-        let apiUrl = "https://openapi.naver.com/v1/search/webkr?query=" + query + "&display=10&sort=sim";
+    googleSearchFlight: function(query, arrivals) {
+        let apiUrl = "https://www.googleapis.com/customsearch/v1?key=" + GGL_API_KEY + "&cx=" + GGL_SID + "&q=" + query + "&start=1"
         let okhttpClient = new OkHttpClient();
         let request = new Request.Builder()
-          .url(apiUrl)
-          .header("X-Naver-Client-Id", NAVER_CID)
-          .header("X-Naver-Client-Secret", NAVER_CSC)
-          .build();
+         .url(apiUrl)
+         .build();
         let responseStr = okhttpClient.newCall(request).execute().body().string();
         response = JSON.parse(responseStr);
         let searchListLength = response["items"].length;
-        let index = Math.floor(Math.random() * (searchListLength));
-        let message = "";
-        message += response["items"][index]["title"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
-        message += response["items"][index]["description"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
-        message += response["items"][index]["link"];
+        let trash_links = ["tour", "tistory", "kin", "youtube", "blog", "book", "news", "dcinside", "fmkorea", "ruliweb", "theqoo", "clien", "mlbpark", "instiz", "todayhumor"];
+        let message = "";//query + "\n";
+        let matched = 0;
+        for (let index = 0; index < searchListLength; index++) {
+            disp_link = response["items"][index]["displayLink"];
+            title = response["items"][index]["title"];
+            if (str_includes(disp_link, trash_links) == false && title.includes(arrivals) && matched < 3) {
+                message += title.replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
+                message += response["items"][index]["snippet"].replace(/&quot;/g, '"').replace(/<b>|<\/b>/g, '') + '\n';
+                message += "링크: " + response["items"][index]["formattedUrl"] + '\n';
+                matched++;
+            }
+        }
         return message;
     }
 };
+
+function str_includes(mainString, substrings) {
+    for (substring of substrings) {
+        if (mainString.includes(substring)) {
+            return true
+        } else {
+            return false
+        }
+    }
+}
 
 function _msg_gptSummary(msg, token, sender) {
     let response;
@@ -188,7 +204,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 "properties": {
                     "subject": {
                         "type": "string",
-                        "description": "특정인 혹은 특정 주제 eg. 경제, 세계, 영화, 생활, 문화, 기술, IT, 연예, 스포츠, 정치, 사회 등",
+                        "description": "특정인 혹은 특정 주제 eg. 경제, 영화, 기술, 연예, 스포츠, 정치, 부동산 등",
                     },
                     "article": {
                         "type": "string",
@@ -221,8 +237,8 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 "required": ["product", "price"],
             },
         },{
-            "name": "naverSearchFlight",
-            "description": "항공편 정보. 특정 날짜에 출발지에서 목적지까지 이동하는 항공권 정보를 찾아야합니다.",
+            "name": "googleSearchFlight",
+            "description": "비행기 항공편 정보. 특정 날짜에 출발지에서 목적지까지 이동하는 항공권 정보를 찾아야합니다.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -267,10 +283,6 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             if (functionName == 'kakaoSearchLocal') {
                 let location = JSON.parse(functionToCall.arguments).location;
                 let place = JSON.parse(functionToCall.arguments).place;
-                if (location == "연남동" && (place == "맛집" || place == "음식점" || place == "식당" || place == "덮밥집")) {
-                    if (Math.random() <= 0.7)
-                    place = "연남하라";
-                }
                 searchingResult += functionList[functionName](location + " " + place + "\n"); // kakao map에서 지역 + 장소 검색
                 if (searchingResult == null) {
                     message += _msg_getChatGPTResponse(msg, style);
@@ -303,28 +315,29 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                     return message;
                 }
                 let prompt = "사용자의 질문: \"" + msg + ".\"";
-                prompt += PERSONALITY_RESPONSE_FC[style] + "답변의 마지막에는 반드시 검색결과에 포함된 링크를 알려줘.\n";
+                prompt += PERSONALITY_RESPONSE_FC[style] + "검색결과에 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
             }
-            else if (functionName == 'naverSearchFlight') {
+            else if (functionName == 'googleSearchFlight') {
                 let date = JSON.parse(functionToCall.arguments).date;
                 let departures = JSON.parse(functionToCall.arguments).departures;
                 let arrivals = JSON.parse(functionToCall.arguments).arrivals;
                 if (departures) {
-                    searchingResult += functionList[functionName](date + " " + departures + "에서 출발하는 " + arrivals + " 항공권\n"); // Web 검색
+                    searchingResult += functionList[functionName](date + " " + departures + "-" + arrivals + "항공권\n", arrivals); // Web 검색
                 }
                 else {
-                    searchingResult += functionList[functionName](date + " " + " 출발하는 " + arrivals + " 항공권\n"); // Web 검색
+                    searchingResult += functionList[functionName](date + " " + " 출발하는 " + arrivals + "행 항공권\n", arrivals); // Web 검색
                 }
                 if (searchingResult == null) {
                     message += _msg_getChatGPTResponse(msg, style);
-                    return message;
                 }
-                let prompt = "사용자의 질문: \"" + msg + ".\"";
-                prompt += PERSONALITY_RESPONSE_FC[style] + "답변의 마지막에는 반드시 검색결과에 포함된 링크를 알려줘.\n";
-                prompt += "검색결과: \"" + searchingResult + "\"";
-                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
+                else {
+                    let prompt = "사용자의 질문: \"" + msg + ".\"";
+                    prompt += PERSONALITY_RESPONSE_FC[style] + "검색결과에 https://로 시작하는 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
+                    prompt += "검색결과: \"" + searchingResult + "\"";
+                    message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
+                }
             }
         }
         else {
