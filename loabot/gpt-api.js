@@ -72,7 +72,7 @@ let functionList = {
         return message;
     },
     naverSearchFlight: function(query) {
-        let apiUrl = "https://openapi.naver.com/v1/search/webkr?query=" + query + "&display=3&sort=sim";
+        let apiUrl = "https://openapi.naver.com/v1/search/webkr?query=" + query + "&display=10&sort=sim";
         let okhttpClient = new OkHttpClient();
         let request = new Request.Builder()
           .url(apiUrl)
@@ -192,7 +192,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                     },
                     "article": {
                         "type": "string",
-                        "description": "최근 뉴스, 기사 등에 실린 최신 이슈나 근황이 어떻게 되고 있는지, 얼마나 진행중인지 eg. 특정인 혹은 특정 주제에 사회 이슈, 관련된 최근 사건, 동향, 결과, 개봉, 발표, 연구, 소식, 상황, 요새, 어제",
+                        "description": "뉴스, 기사, 피습 사건, 경기 결과, 재판 결과, 영화 개봉, 깜짝 발표, 신제품 출시, 지점 오픈, 연구 결과, 열애 소식, 엄중한 상황",
                     },
                     "unit": {
                         "type": "string"
@@ -315,7 +315,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                     searchingResult += functionList[functionName](date + " " + departures + "에서 출발하는 " + arrivals + " 항공권\n"); // Web 검색
                 }
                 else {
-                    searchingResult += functionList[functionName](date + " " + "에 출발하는 " + arrivals + " 항공권\n"); // Web 검색
+                    searchingResult += functionList[functionName](date + " " + " 출발하는 " + arrivals + " 항공권\n"); // Web 검색
                 }
                 if (searchingResult == null) {
                     message += _msg_getChatGPTResponse(msg, style);
