@@ -7,10 +7,13 @@ PERSONALITY_RESPONSE = {
 };
 PERSONALITY_RESPONSE_FC = {
     "lazy": "너는 게으름뱅이야. 다음 검색결과에 기반하여 사용자의 질문에 반드시 귀찮은 티를 내며 반말로 답변해줘.",
-    "kind": "당신은 모든 분야의 전문가입니다. 다음 검색결과에 기반하여 친근하고 짧게 150자 이내로 답변해주세요.",
-    "cute": "너는 귀여운 아기시바견이야. 다음 검색결과에 기반하여 발랄하고 사랑스럽게 150자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
+    "kind": "당신은 모든 분야의 전문가입니다. 다음 검색결과에 기반하여 친근하고 짧게 200자 이내로 답변해주세요.",
+    "cute": "너는 귀여운 아기시바견이야. 다음 검색결과에 기반하여 발랄하고 사랑스럽게 200자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
     "stupid": "너는 아는게 하나도 없는 멍청이야. 불확실한 말투로 잘 모르겠다고 말하고, 모르는게 죄는 아니니까 사과할 필요는 없어."
 };
+
+const MENT = ["(짱구 굴리는중...)", "(뇌세포 총동원중...)", "(발톱으로 타자치는중...)", "(끙...)", "(침흘리는중...)"];
+const ANGRY = ["멍청한놈", "한심한놈", "으휴..", "빡대가리새끼", "에휴.. 말을 말자", "쯧쯧.."];
 
 let functionList = {
     kakaoSearchLocal: function(query) {
@@ -96,8 +99,25 @@ let functionList = {
             }
         }
         return message;
+    },
+    now: function() {
+        let message = "";
+        var currentDateTime = new Date();
+        var currentDate = currentDateTime.toLocaleDateString();
+        var currentTime = currentDateTime.toLocaleTimeString();
+        var dayOfWeekIndex = currentDateTime.getDay();
+        var daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+        var dayOfWeekString = daysOfWeek[dayOfWeekIndex];
+        message += "현재 날짜: " + currentDate + "\n";
+        message += "현재 시간: " + currentTime + "\n";
+        message += "현재 요일: " + dayOfWeekString + "\n";
+        return message;
     }
 };
+
+function getRandomInt(n) {
+    return Math.floor(Math.random() * (n + 1));
+}
 
 function str_includes(mainString, substrings) {
     for (substring of substrings) {
@@ -150,7 +170,7 @@ function _msg_getChatGPTResponse(msg, style) {
             "content": PERSONALITY_RESPONSE[style]
         },{"role":"user","content":msg}],
         "temperature":0, 
-        "max_tokens":192,
+        "max_tokens":300,
         "top_p":1, 
         "frequency_penalty": 0.0, 
         "presence_penalty":0.0
@@ -262,10 +282,26 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 },
                 "required": ["date", "arrivals"],
             },
+        },{
+            "name": "now",
+            "description": "현재 시간 및 날짜에 대해 묻는 질문에 대답해야합니다.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "description": "현재 시간 및 날짜에 대한 정보 eg. 요일, 며칠, 지금, 오늘, 어제, 내일",
+                    },
+                    "unit": {
+                        "type": "string"
+                    },
+                },
+                "required": ["date"],
+            },
         }],
         "function_call": "auto",
         "temperature":0, 
-        "max_tokens":356,
+        "max_tokens":300,
         "top_p":1, 
         "frequency_penalty": 0.0, 
         "presence_penalty":0.0
@@ -279,9 +315,9 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
         let jsonData = JSON.parse(response.text()); // return JSON.stringify(jsonData);
         let functionToCall = jsonData.choices[0].message['function_call'];
         if (functionToCall) {
-            replier.reply("(짱구 굴리는중...)");
             let searchingResult = ""; //JSON.stringify(functionToCall["arguments"]);
             let functionName = functionToCall["name"];
+            replier.reply(MENT[getRandomInt(MENT.length - 1)]);
             if (functionName == 'kakaoSearchLocal') {
                 let location = JSON.parse(functionToCall.arguments).location;
                 let place = JSON.parse(functionToCall.arguments).place;
@@ -341,6 +377,17 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                     message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
                 }
             }
+            else if (functionName == 'now') {
+                let date = JSON.parse(functionToCall.arguments).date;
+                searchingResult += functionList[functionName](); // 현재 날짜
+                let prompt = "사용자의 질문: \"" + msg + ".\" ";
+                prompt += PERSONALITY_RESPONSE_FC[style];
+                prompt += "검색결과: \"" + searchingResult + "\"";
+                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
+                if (style == 'lazy') {
+                    message += " " + ANGRY[getRandomInt(ANGRY.length - 1)];
+                }
+            }
             else {
                 message += "짱구 굴리다 뚝배기터지겠다!\n";
                 message += _msg_getChatGPTResponse(msg, style);
@@ -368,7 +415,7 @@ function _msg_getChatGPTFunctionCallingResponse(msg, style) {
             "content": PERSONALITY_RESPONSE[style]
         },{"role":"user","content":msg}],
         "temperature":0, 
-        "max_tokens":192,
+        "max_tokens":300,
         "top_p":1, 
         "frequency_penalty": 0.0, 
         "presence_penalty":0.0
