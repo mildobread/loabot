@@ -91,13 +91,6 @@ function adminMildo(room, msg, sender) {
 }
 
 function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, isMultiChat) {
-    // // test
-    // if (room == "Mine") {
-    //     var message = testfunction(msg);
-    //     replier.reply(message);
-    //     return;
-    // }
-
     // GPT - admin
     var command = adminMildo(room, msg, sender);
     if (command) {
@@ -108,17 +101,10 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     // GPT
     if (msg.startsWith("!밀도야 ")) {
         var prompt = msg.substr(5);
-        //var message = gptApi.msg_getChatGPTResponse(prompt, style);
         var message = gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
         replier.reply(message);
         return;
     }
-
-    // if (room == "Mine") {
-    //     var message = loaApi.msg_equip(msg);
-    //     replier.reply(message);
-    //     return;
-    // }
 
     if (room == "akd") {
         msgList_1.push(sender + " : " + msg);
@@ -238,6 +224,6 @@ function msg_help() {
 }
 
 function msg_nullCmd(user_name) {
-    var message = "뭔소리여";
+    var message = "뭔개소리여";
     return message;
 }
