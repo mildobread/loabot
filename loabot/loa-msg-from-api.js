@@ -128,37 +128,6 @@ function _msg_equip(user_name) {
     return message;
 }
 
-function msg_over(user_name) {
-    var url = "https://developer-lostark.game.onstove.com/armories/characters/" + user_name + "/equipment";
-    var data = getData(url);
-    var message = "[캐릭터 초월 정보]\n";
-    if (data == 'null') {
-        message += 'null\n';
-        return message;
-    }
-    else {
-        var results = JSON.parse(data);
-        var sumOver = 0;
-        for (let i=1; i<6; i++) {
-            var tooltip = JSON.parse(results[i]['Tooltip']);
-            var overStr = "Element_008";
-            var element = tooltip[overStr]['value']['Element_000'];
-            var equip_name = results[i]['Name'];
-            message += equip_name + '\n';
-            if (element && typeof element == 'object' && 'topStr' in element) { // 엘릭서 or 초월이 존재
-                var isOver = String(tooltip[overStr]['value']['Element_000']['topStr']).includes('초월'); // 08번에 초월 존재
-                if (isOver) { // 초월 O
-                    overLvl = String(tooltip[overStr]['value']['Element_000']['topStr']).split('[초월]')[1].split('단계')[0];
-                    message += " ▶ 초월:" + overLvl + "단계\n";
-                    sumOver += Number(overLvl);
-                }
-            }
-        }
-        message += "초월 합계: " + sum;
-    }
-    return message;
-}
-
 function _msg_gem(user_name) {
     var url = "https://developer-lostark.game.onstove.com/armories/characters/" + user_name + "/gems";
     var data = getData(url);
