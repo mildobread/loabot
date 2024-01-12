@@ -16,17 +16,13 @@ function _msg_weather(msg) {
 
 function _msg_destiny(animall) {
     var message = "";
-    if (!animall in ['쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양', '원숭이', '닭', '개', '돼지']) {
+    if (!['쥐띠', '소띠', '호랑이띠', '토끼띠', '용띠', '뱀띠', '말띠', '양띠', '원숭이띠', '닭띠', '개띠', '돼지띠'].includes(animall)) {
         message += '그런 띠는 없단다..'
         return message;
     }
     var line = '-'.repeat(32);
     var url = org.jsoup.Jsoup.connect("https://search.naver.com/search.naver?where=nexearch&sm=tab_etc&qvt=0&query=" + animall + "운세").get();
     var result = url.select("#yearFortune > div > div.detail > p:nth-child(3)").text();
-    if(result == "") {
-        replier.reply('"띠"를 붙여 다시 검색해주세요.\n또는 검색어 결과가 없습니다.');
-        return;
-    }
     message += ("🌟오늘의 " + animall + " 운세🌟\n" + line + "\n" + result);
     return message;
 }
