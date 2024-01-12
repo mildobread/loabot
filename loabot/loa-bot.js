@@ -114,10 +114,8 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         return;
     }
 
-    // GPT - function calling
-    // if (msg.startsWith("/")) {
-    //     var prompt = msg.substr(1);
-    //     var message = gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
+    // if (room == "Mine") {
+    //     var message = loaApi.msg_equip(msg);
     //     replier.reply(message);
     //     return;
     // }

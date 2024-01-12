@@ -73,14 +73,68 @@ function _msg_equip(user_name) {
     else {
         var results = JSON.parse(data);
         message += "닉네임: " + user_name + "\n";
-        var sum = 0;        for(let i=0; i<6; i++) {
+        var sum = 0;
+        for (let i=0; i<6; i++) {
             var tooltip = JSON.parse(results[i]['Tooltip']);
             var quality_value = tooltip['Element_001']['value']['qualityValue'];
             sum += Number(quality_value);
             var level = results[i]['Name'];
             message += level + ' ' + quality_value + '\n';
         }
-        message += "장비 품질 평균: " + (sum/6).toFixed(2);
+        message += "장비 품질 평균: " + (sum/6).toFixed(2) + '\n';
+    }
+    message += msg_elixir(user_name)
+    return message;
+}
+
+function msg_elixir(user_name) {
+    var url = "https://developer-lostark.game.onstove.com/armories/characters/" + user_name + "/equipment";
+    var data = getData(url);
+    var message = "\n[캐릭터 엘릭서 정보]\n";
+    if (data == 'null') {
+        message += 'null\n';
+        return message;
+    }
+    else {
+        var results = JSON.parse(data);
+        var sum = 0;
+        for (let i=1; i<6; i++) {
+            var tooltip = JSON.parse(results[i]['Tooltip']);
+            var overStr = "Element_008";
+            var element = tooltip[overStr]['value']['Element_000'];
+            if (element && typeof element == 'object' && 'topStr' in element) { // 엘릭서 or 초월이 존재
+                var isOver = String(tooltip[overStr]['value']['Element_000']['topStr']).includes('초월'); // 08번에 초월 존재
+                if (isOver) { // 초월 O
+                    overStr = "Element_009"; // 엘릭서는 09번으로
+                    isOver = String(tooltip[overStr]['value']['Element_000']['topStr']).includes('엘릭서');
+                }
+                var elixir = tooltip[overStr]['value']['Element_000']['contentStr'];
+                var pattern = /Lv\.(\d+)/g;
+                var equip_name = results[i]['Name'];
+                message += equip_name + '\n';
+
+                if (elixir && elixir["Element_000"]) {
+                    var elixir_op1 = elixir["Element_000"]["contentStr"];
+                    var match1 = pattern.exec(elixir_op1);
+                    var elixir_op1_lvl = match1[1];
+                    sum += Number(elixir_op1_lvl);
+                    message += ' ▶ ' + elixir_op1.split(match1[0])[0] + match1[0] + '\n';
+                    pattern.lastIndex = 0;
+                }
+                if (elixir && elixir["Element_001"]) {
+                    var elixir_op2 = elixir["Element_001"]["contentStr"];
+                    var match2 = pattern.exec(elixir_op2);
+                    var elixir_op2_lvl = match2[1];
+                    sum += Number(elixir_op2_lvl);
+                    message += ' ▶ ' + elixir_op2.split(match2[0])[0] + match2[0] + '\n';
+                }
+            }
+            else {
+                var equip_name = results[i]['Name'];
+                message += equip_name + '\n';
+            }
+        }
+        message += "엘릭서 합계: " + sum;
     }
     return message;
 }
@@ -114,6 +168,7 @@ function _msg_profile(user_name) {
     var message = "[캐릭터 프로필]\n";
     if (data == 'null') {
         message += 'null\n';
+        return message;
     }
     else {
         var results = JSON.parse(data);
