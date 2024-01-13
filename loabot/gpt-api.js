@@ -1,14 +1,14 @@
 PERSONALITY_SUMMARY = "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean.";
 PERSONALITY_RESPONSE = {
-    "lazy": "너는 게으름뱅이야. 반드시 반말로 건방지고 짧게 150자 이내로 답변해줘.",
-    "kind": "당신은 모든 분야의 전문가입니다. 친근하고 짧게 150자 이내로 답변해주세요.",
-    "cute": "너는 귀여운 아기시바견이야. 발랄하고 사랑스럽게 150자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
+    "lazy": "너는 게으름뱅이야. 반드시 반말로 건방지게 300자 이내로 답변해줘.",
+    "kind": "당신은 모든 분야의 전문가입니다. 친근하게 300자 이내로 답변해주세요.",
+    "cute": "너는 귀여운 아기시바견이야. 발랄하고 사랑스럽게 300자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
     "stupid": "너는 아는게 하나도 없는 멍청이야. 불확실한 말투로 잘 모르겠다고 말하고, 모르는게 죄는 아니니까 사과할 필요는 없어."
 };
 PERSONALITY_RESPONSE_FC = {
     "lazy": "너는 게으름뱅이야. 다음 검색결과에 기반하여 사용자의 질문에 반드시 귀찮은 티를 내며 반말로 답변해줘.",
-    "kind": "당신은 모든 분야의 전문가입니다. 다음 검색결과에 기반하여 친근하고 짧게 200자 이내로 답변해주세요.",
-    "cute": "너는 귀여운 아기시바견이야. 다음 검색결과에 기반하여 발랄하고 사랑스럽게 200자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
+    "kind": "당신은 모든 분야의 전문가입니다. 다음 검색결과에 기반하여 친근하게 300자 이내로 답변해주세요.",
+    "cute": "너는 귀여운 아기시바견이야. 다음 검색결과에 기반하여 발랄하고 사랑스럽게 300자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
     "stupid": "너는 아는게 하나도 없는 멍청이야. 불확실한 말투로 잘 모르겠다고 말하고, 모르는게 죄는 아니니까 사과할 필요는 없어."
 };
 
@@ -200,7 +200,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
         },{"role":"user","content":msg}],
         "functions": [{
             "name": "kakaoSearchLocal",
-            "description": "특정 지역에 존재하는 맛집, 음식점, 병원, 마트, 여행지, 영화관, 산책로, 드라이브 코스, 데이트 코스, 주말에 놀러 갈만한 곳 등 다양한 장소에 대한 정보를 얻어야합니다.",
+            "description": "사용자의 추천 요청이 있다면, 특정 지역에 존재하는 맛집, 음식점, 병원, 마트, 여행지, 영화관, 산책로, 드라이브 코스, 데이트 코스, 주말에 놀러 갈만한 곳 등 다양한 장소에 대한 정보를 얻어야합니다.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -210,7 +210,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                     },
                     "place": {
                         "type": "string",
-                        "description": "지명이 아니라 업체나 관광지 이름 eg. 나들이 코스, 맛집, 알탕집, 냉면집, 고기집, 스시집, 음식점, 병원, 산책로, 드라이브 코스, 데이트 코스, 마트, 관광지, 구경, 놀곳, 점집",
+                        "description": "지명이 아니라 업체, 상호명, 관광지 이름 eg. 나들이 코스, 맛집, 알탕집, 냉면집, 고기집, 스시집, 음식점, 병원, 산책로, 드라이브 코스, 데이트 코스, 마트, 관광지, 구경, 놀곳, 점집",
                     },
                     "unit": {
                         "type": "string"
@@ -240,7 +240,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             },
         },{
             "name": "naverSearchShopping",
-            "description": "특정 물건에 대해 구매처와 가격 정보 최저가/최고가를 찾아야합니다.",
+            "description": "사용자의 추천 요청이 있다면, 특정 물건에 대해 구매처와 가격 정보 최저가/최고가를 찾아야합니다.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -260,7 +260,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             },
         },{
             "name": "naverSearchFlight",
-            "description": "비행기 항공편 정보. 특정 날짜에 출발지에서 목적지까지 이동하는 항공권 정보를 찾아야합니다.",
+            "description": "사용자의 항공편 정보 요청이 있다면, 비행기 항공편 정보. 특정 날짜에 출발지에서 목적지까지 이동하는 항공권 정보를 찾아야합니다.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -322,12 +322,12 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 let location = JSON.parse(functionToCall.arguments).location;
                 let place = JSON.parse(functionToCall.arguments).place;
                 searchingResult += functionList[functionName](location + " " + place + "\n"); // kakao map에서 지역 + 장소 검색
-                if (searchingResult == null) {
+                if (searchingResult == 'null') {
                     message += _msg_getChatGPTResponse(msg, style);
                     return message;
                 }
                 let prompt = "사용자의 질문: \"" + msg + ".\" ";
-                prompt += PERSONALITY_RESPONSE_FC[style] + "답변의 마지막에는 링크를 알려줘.\n";
+                prompt += PERSONALITY_RESPONSE_FC[style] + "검색결과에 https://로 시작하는 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
             }
@@ -335,7 +335,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 let subject = JSON.parse(functionToCall.arguments).subject;
                 let article = JSON.parse(functionToCall.arguments).article;
                 searchingResult += functionList[functionName](subject + " " + article + "\n"); // 네이버 뉴스에서 검색
-                if (searchingResult == null) {
+                if (searchingResult == 'null') {
                     message += _msg_getChatGPTResponse(msg, style);
                     return message;
                 }
@@ -348,12 +348,12 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 let product = JSON.parse(functionToCall.arguments).product;
                 let price = JSON.parse(functionToCall.arguments).price;
                 searchingResult += functionList[functionName](product + "\n"); // 네이버 쇼핑에서 검색
-                if (searchingResult == null) {
+                if (searchingResult == 'null') {
                     message += _msg_getChatGPTResponse(msg, style);
                     return message;
                 }
                 let prompt = "사용자의 질문: \"" + msg + ".\" ";
-                prompt += PERSONALITY_RESPONSE_FC[style] + "검색결과에 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
+                prompt += PERSONALITY_RESPONSE_FC[style] + "검색결과에 https://로 시작하는 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
             }
@@ -367,7 +367,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 else { // 출발지 없음
                     searchingResult += functionList[functionName](date + " " + "한국에서 출발하는 " + arrivals + "가는 항공권\n", arrivals); // Web 검색
                 }
-                if (searchingResult == null) {
+                if (searchingResult == 'null') {
                     message += _msg_getChatGPTResponse(msg, style);
                 }
                 else {
