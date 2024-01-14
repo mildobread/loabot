@@ -12,10 +12,10 @@ const ANGRY = ["멍청한놈", "한심한놈", "으휴..", "에휴.. 말을 말�
 let functionList = {
     kakaoSearchLocal: function(query) {
         let response = org.jsoup.Jsoup.connect("https://dapi.kakao.com/v2/local/search/keyword.json?query=" + query + "&size=5")
-          .header("Authorization", "KakaoAK " + KAKAO_API_KEY)
-          .ignoreContentType(true)
-          .ignoreHttpErrors(true)
-          .get().text();
+            .header("Authorization", "KakaoAK " + KAKAO_API_KEY)
+            .ignoreContentType(true)
+            .ignoreHttpErrors(true)
+            .get().text();
         response = JSON.parse(response);
         let searchListLength = response["documents"].length;
         let index = Math.floor(Math.random() * (searchListLength));
@@ -37,10 +37,10 @@ let functionList = {
         let apiUrl = "https://openapi.naver.com/v1/search/news?query=" + query + "&display=5&sort=sim";
         let okhttpClient = new OkHttpClient();
         let request = new Request.Builder()
-          .url(apiUrl)
-          .header("X-Naver-Client-Id", NAVER_CID)
-          .header("X-Naver-Client-Secret", NAVER_CSC)
-          .build();
+            .url(apiUrl)
+            .header("X-Naver-Client-Id", NAVER_CID)
+            .header("X-Naver-Client-Secret", NAVER_CSC)
+            .build();
         let responseStr = okhttpClient.newCall(request).execute().body().string();
         response = JSON.parse(responseStr);
         let searchListLength = response["items"].length;
@@ -55,10 +55,10 @@ let functionList = {
         let apiUrl = "https://openapi.naver.com/v1/search/shop?query=" + query + "&display=5&sort=sim";
         let okhttpClient = new OkHttpClient();
         let request = new Request.Builder()
-          .url(apiUrl)
-          .header("X-Naver-Client-Id", NAVER_CID)
-          .header("X-Naver-Client-Secret", NAVER_CSC)
-          .build();
+            .url(apiUrl)
+            .header("X-Naver-Client-Id", NAVER_CID)
+            .header("X-Naver-Client-Secret", NAVER_CSC)
+            .build();
         let responseStr = okhttpClient.newCall(request).execute().body().string();
         response = JSON.parse(responseStr);
         let searchListLength = response["items"].length;
@@ -87,7 +87,7 @@ let functionList = {
     }
 };
 
-function getRandomInt(n) {
+function _getRandomInt(n) {
     return Math.floor(Math.random() * (n + 1));
 }
 
@@ -114,13 +114,13 @@ function _msg_gptSummary(msg, token, sender) {
 
     try {
         response = org.jsoup.Jsoup.connect("https://api.openai.com/v1/chat/completions")
-        .header("Content-Type", "application/json")
-        .header("Authorization", "Bearer " + GPT_API_KEY)
-        .requestBody(JSON.stringify(data)).ignoreHttpErrors(!0)
-        .ignoreContentType(!0)
-        .post().wholeText()
-        .trim()
-        .replace(/\x00/g,'');
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + GPT_API_KEY)
+            .requestBody(JSON.stringify(data)).ignoreHttpErrors(!0)
+            .ignoreContentType(!0)
+            .post().wholeText()
+            .trim()
+            .replace(/\x00/g,'');
         response = JSON.parse(response);
         let message = response.choices[0].message;
         return message.content;
@@ -150,9 +150,9 @@ function _msg_getChatGPTResponse(msg, style) {
  
     try {
         let response = org.jsoup.Jsoup.connect("https://api.openai.com/v1/chat/completions")
-        .header("Content-Type", "application/json")
-        .header("Authorization","Bearer " + GPT_API_KEY).requestBody(JSON.stringify(data))
-        .ignoreContentType(true).ignoreHttpErrors(true).timeout(200000).post()
+            .header("Content-Type", "application/json")
+            .header("Authorization","Bearer " + GPT_API_KEY).requestBody(JSON.stringify(data))
+            .ignoreContentType(true).ignoreHttpErrors(true).timeout(200000).post()
         let result1 = JSON.parse(response.text());
         result = result1.choices[0].message.content; 
     } catch(error){
@@ -277,16 +277,16 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
  
     try {
         let response = org.jsoup.Jsoup.connect("https://api.openai.com/v1/chat/completions")
-        .header("Content-Type", "application/json")
-        .header("Authorization","Bearer " + GPT_API_KEY).requestBody(JSON.stringify(data))
-        .ignoreContentType(true).ignoreHttpErrors(true).timeout(200000).post()
+            .header("Content-Type", "application/json")
+            .header("Authorization","Bearer " + GPT_API_KEY).requestBody(JSON.stringify(data))
+            .ignoreContentType(true).ignoreHttpErrors(true).timeout(200000).post()
         let jsonData = JSON.parse(response.text()); // return JSON.stringify(jsonData);
         let functionToCall = jsonData.choices[0].message['function_call'];
         if (functionToCall) {
             let searchingResult = "";
             //let searchingResult = JSON.stringify(functionToCall["arguments"]);
             let functionName = functionToCall["name"];
-            replier.reply(MENT[getRandomInt(MENT.length - 1)]);
+            replier.reply(MENT[_getRandomInt(MENT.length - 1)]);
             if (functionName == 'kakaoSearchLocal') {
                 let location = JSON.parse(functionToCall.arguments).location;
                 let place = JSON.parse(functionToCall.arguments).place;
@@ -334,7 +334,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
                 if (style == 'lazy') {
-                    message += " " + ANGRY[getRandomInt(ANGRY.length - 1)];
+                    message += " " + ANGRY[_getRandomInt(ANGRY.length - 1)];
                 }
             }
             else if (functionName == 'route') {
@@ -376,9 +376,9 @@ function _msg_getChatGPTFunctionCallingResponse(msg, style) {
  
     try {
         let response = org.jsoup.Jsoup.connect("https://api.openai.com/v1/chat/completions")
-        .header("Content-Type", "application/json")
-        .header("Authorization","Bearer " + GPT_API_KEY).requestBody(JSON.stringify(data))
-        .ignoreContentType(true).ignoreHttpErrors(true).timeout(200000).post()
+            .header("Content-Type", "application/json")
+            .header("Authorization","Bearer " + GPT_API_KEY).requestBody(JSON.stringify(data))
+            .ignoreContentType(true).ignoreHttpErrors(true).timeout(200000).post()
         let result1 = JSON.parse(response.text());
         result = result1.choices[0].message.content; 
     } catch(error){
@@ -392,5 +392,6 @@ module.exports = {
     msg_gptSummary: _msg_gptSummary,
     msg_getChatGPTResponse: _msg_getChatGPTResponse,
     msg_getChatGPTFunctionCalling: _msg_getChatGPTFunctionCalling,
-    msg_getChatGPTFunctionCallingResponse: _msg_getChatGPTFunctionCallingResponse
+    msg_getChatGPTFunctionCallingResponse: _msg_getChatGPTFunctionCallingResponse,
+    getRandomInt: _getRandomInt,
 }

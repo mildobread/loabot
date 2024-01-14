@@ -18,6 +18,8 @@ const GGL_SID = keys.GGL_SID
 const CHARACTER_TYPE = 0;
 const EVENT_TYPE = 1;
 
+const DRAW_MENT = ["(슥슥...)", "(발톱에 물감 묻히는중...)", "(좀만 기다려봐...)", "(물감 챙기는중...)", "(엉...기다려봐...)"];
+
 let chatList = {}; // 대화 내용 저장
 
 function onNotificationPosted(sbn, sm) {
@@ -100,8 +102,19 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
 
     // GPT
     if (msg.startsWith("!밀도야 ")) {
-        var prompt = msg.substr(5);
-        var message = gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
+        var message = "";
+        var karloPrompt = "";
+        var drawRequest = "그려줘";
+        var subStr = msg.substr(5);
+        var prompt = subStr;
+        if (subStr.includes(drawRequest)) {
+            replier.reply(DRAW_MENT[gptApi.getRandomInt(DRAW_MENT.length - 1)]);
+            karloPrompt = subStr.split(drawRequest)[0].trim();
+            message += utils.msg_draw(karloPrompt);
+        }
+        else {
+            message += gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
+        }
         replier.reply(message);
         return;
     }
@@ -159,7 +172,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         }
     }
     // Type: "/Commnad ID"
-    else if (cmd.length == 2) {
+    else if (cmd.length >= 2) {
         switch (cmd[0]) {
             case "!장비":
                 message = loaApi.msg_equip(cmd[1]);
@@ -219,6 +232,7 @@ function msg_help() {
     message += "!운세 [X띠]\n";
     message += "!날씨 [지역]\n";
     message += "!밀도야 [내용]\n";
+    message += "!밀도야 [내용] 그려줘\n";
     message += "!도움말";
     return message;
 }

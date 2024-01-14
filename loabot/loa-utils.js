@@ -31,16 +31,16 @@ function _drawImage(user_name, url, imageType) {
     imgb64 = java.util.Base64.getEncoder().encodeToString(bytearray);
     d = {"image":imgb64,"title":"title"};
     r = org.jsoup.Jsoup.connect("https://a.mildo.workers.dev/s")
-            .header("Content-Type", "application/json")
-            .header("Accept", "text/plain")
-            .followRedirects(true)
-            .ignoreHttpErrors(true)
-            .ignoreContentType(true)
-            .method(org.jsoup.Connection.Method.POST)
-            .maxBodySize(1000000*30)
-            .requestBody(JSON.stringify(d))
-            .timeout(0)
-            .execute();
+        .header("Content-Type", "application/json")
+        .header("Accept", "text/plain")
+        .followRedirects(true)
+        .ignoreHttpErrors(true)
+        .ignoreContentType(true)
+        .method(org.jsoup.Connection.Method.POST)
+        .maxBodySize(1000000*30)
+        .requestBody(JSON.stringify(d))
+        .timeout(0)
+        .execute();
     res = 'https://a.mildo.workers.dev/e/' + r.body();
     return res;
 }
@@ -78,18 +78,55 @@ function _event_image() {
     return message;
 }
 
+function _msg_draw(prompt) {
+    var url = "https://api.kakaobrain.com/v2/inference/karlo/t2i";
+    var response = org.jsoup.Jsoup.connect(url)
+        .header("Content-Type", "application/json")
+        .header("Authorization", "KakaoAK " + KAKAO_API_KEY)
+        .requestBody(JSON.stringify({
+            "prompt": translate(prompt),
+            "negative_prompt": "",
+        }))
+        .ignoreContentType(true)
+        .ignoreHttpErrors(true)
+        .post().text();
+    var message = "";
+    response = JSON.parse(response);
+    imgUrl = response['images'][0]['image'];
+    message += _drawImage("", imgUrl, "None")
+    return message;
+}
+
+function translate(prompt) {
+    var t = JSON.parse(org.jsoup.Jsoup.connect('https://openapi.naver.com/v1/papago/n2mt')
+        .header('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
+        .header("X-Naver-Client-Id", NAVER_CID)
+        .header("X-Naver-Client-Secret", NAVER_CSC)
+        .data({
+            source: 'ko',
+            target: 'en',
+            text: prompt
+        }).ignoreHttpErrors(true).ignoreContentType(true).post().wholeText());
+    try {
+        return t.message.result.translatedText;
+    } catch(e) {
+        throw new Error(t.errorMessage);
+    }
+}
+
 function getData(url) {
     var data = org.jsoup.Jsoup.connect(url)
-    .header("accept", "application/json")
-    .header("authorization", 'bearer ' + LOA_API_KEY)
-    .ignoreContentType(true)
-    .ignoreHttpErrors(true)
-    .get().text();
+        .header("accept", "application/json")
+        .header("authorization", 'bearer ' + LOA_API_KEY)
+        .ignoreContentType(true)
+        .ignoreHttpErrors(true)
+        .get().text();
     return data;
 }
 
 module.exports = {
     drawImage: _drawImage,
     character_image: _character_image,
-    event_image: _event_image
+    event_image: _event_image,
+    msg_draw: _msg_draw,
 }

@@ -304,33 +304,33 @@ function getGemPrice(gem_name) {
     .header("Content-Type", "application/json")
     .header("authorization", 'bearer ' + LOA_API_KEY)
     .requestBody(JSON.stringify({
-            "ItemLevelMin": 0,
-            "ItemLevelMax": 0,
-            "ItemGradeQuality": null,
-            "SkillOptions": [
-              {
-                "FirstOption": null,
-                "SecondOption": null,
-                "MinValue": null,
-                "MaxValue": null
-              }
-            ],
-            "EtcOptions": [
-              {
-                "FirstOption": null,
-                "SecondOption": null,
-                "MinValue": null,
-                "MaxValue": null
-              }
-            ],
-            "Sort": "BUY_PRICE",
-            "CategoryCode": 210000,
-            "CharacterClass": null,
-            "ItemTier": "3",
-            "ItemGrade": null,
-            "ItemName": gem_name,
-            "PageNo": 0,
-            "SortCondition": "ASC"
+        "ItemLevelMin": 0,
+        "ItemLevelMax": 0,
+        "ItemGradeQuality": null,
+        "SkillOptions": [
+            {
+            "FirstOption": null,
+            "SecondOption": null,
+            "MinValue": null,
+            "MaxValue": null
+            }
+        ],
+        "EtcOptions": [
+            {
+            "FirstOption": null,
+            "SecondOption": null,
+            "MinValue": null,
+            "MaxValue": null
+            }
+        ],
+        "Sort": "BUY_PRICE",
+        "CategoryCode": 210000,
+        "CharacterClass": null,
+        "ItemTier": "3",
+        "ItemGrade": null,
+        "ItemName": gem_name,
+        "PageNo": 0,
+        "SortCondition": "ASC"
     }))
     .ignoreContentType(true)
     .ignoreHttpErrors(true)
@@ -342,11 +342,11 @@ function getGemPrice(gem_name) {
 
 function getData(url) {
     var data = org.jsoup.Jsoup.connect(url)
-    .header("accept", "application/json")
-    .header("authorization", 'bearer ' + LOA_API_KEY)
-    .ignoreContentType(true)
-    .ignoreHttpErrors(true)
-    .get().text();
+        .header("accept", "application/json")
+        .header("authorization", 'bearer ' + LOA_API_KEY)
+        .ignoreContentType(true)
+        .ignoreHttpErrors(true)
+        .get().text();
     return data;
 }
 
