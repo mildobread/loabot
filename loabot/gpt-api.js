@@ -1,9 +1,9 @@
 PERSONALITY_SUMMARY = "This is a conversation from a KakaoTalk chat room. The left side shows the person speaking, and the right side shows the message they sent. Please summarize the important parts of this conversation in less than 300 characters. to korean.";
 PERSONALITY_RESPONSE = {
-    "lazy": "너는 게으름뱅이야. 반드시 반말로 건방지게 300자 이내로 답변해줘.",
-    "kind": "당신은 모든 분야의 전문가입니다. 친근하게 300자 이내로 답변해주세요.",
-    "cute": "너는 귀여운 아기시바견이야. 발랄하고 사랑스럽게 300자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
-    "stupid": "너는 아는게 하나도 없는 멍청이야. 불확실한 말투로 잘 모르겠다고 말하고, 모르는게 죄는 아니니까 사과할 필요는 없어."
+    "lazy": "너는 게으름뱅이야. 사용자의 다음 질문에 대해 반드시 반말로 건방지게 300자 이내로 답변해줘.",
+    "kind": "당신은 모든 분야의 전문가입니다. 사용자의 다음 질문에 대해 친근하게 300자 이내로 답변해주세요.",
+    "cute": "너는 귀여운 아기시바견이야. 사용자의 다음 질문에 대해 발랄하고 사랑스럽게 300자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
+    "stupid": "너는 아는게 하나도 없는 멍청이야. 사용자의 다음 질문에 대해 불확실한 말투로 잘 모르겠다고 말해."
 };
 
 const MENT = ["(짱구 굴리는중...)", "(뇌세포 총동원중...)", "(발톱으로 타자치는중...)", "(끙...)", "(침흘리는중...)"];
@@ -178,11 +178,11 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 "properties": {
                     "location": {
                         "type": "string",
-                        "description": "지역이나 위치이름 eg. 서울, 부산, 제주도, 화성 근처, 수원 근교, 경기도 화성시, 대구 달서구, 동작구, 압구정, 홍대입구역 근처, 문래역, 병점역",
+                        "description": "지역, 도시, 특정 위치의 이름 eg. 서울, 의왕, 부산, 제주도, 화성 근처, 수원 근교, 강남, 신촌, 연남동, 동작구, 압구정, 홍대입구역 근처, 병점역",
                     },
                     "place": {
                         "type": "string",
-                        "description": "지명이 아니라 업체, 상호명, 관광지 이름 eg. 나들이 코스, 맛집, 고기집, 병원, 산책로, 데이트 코스, 관광지, 구경, 놀곳, 점집",
+                        "description": "지명이 아니라 업체, 상호명, 관광지 이름 eg. 나들이 코스, 음식점, 고기집, 병원, 산책로, 데이트 코스, 관광지, 구경, 놀곳, 점집",
                     },
                     "unit": {
                         "type": "string"
@@ -282,6 +282,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             .ignoreContentType(true).ignoreHttpErrors(true).timeout(200000).post()
         let jsonData = JSON.parse(response.text()); // return JSON.stringify(jsonData);
         let functionToCall = jsonData.choices[0].message['function_call'];
+        let prompt = "\n사용자의 질문: \"" + msg + ".\" ";
         if (functionToCall) {
             let searchingResult = "";
             //let searchingResult = JSON.stringify(functionToCall["arguments"]);
@@ -295,7 +296,6 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                     message += _msg_getChatGPTResponse(msg, style);
                     return message;
                 }
-                let prompt = "사용자의 질문: \"" + msg + ".\" ";
                 prompt += PERSONALITY_RESPONSE[style] + "검색결과에 https://로 시작하는 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
@@ -308,7 +308,6 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                     message += _msg_getChatGPTResponse(msg, style);
                     return message;
                 }
-                let prompt = "사용자의 질문: \"" + msg + ".\" ";
                 prompt += PERSONALITY_RESPONSE[style] + "\n";
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
@@ -321,7 +320,6 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                     message += _msg_getChatGPTResponse(msg, style);
                     return message;
                 }
-                let prompt = "사용자의 질문: \"" + msg + ".\" ";
                 prompt += PERSONALITY_RESPONSE[style] + "검색결과에 https://로 시작하는 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
@@ -329,7 +327,6 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             else if (functionName == 'now') {
                 let date = JSON.parse(functionToCall.arguments).date;
                 searchingResult += functionList[functionName](); // 현재 날짜
-                let prompt = "사용자의 질문: \"" + msg + ".\" ";
                 prompt += PERSONALITY_RESPONSE[style];
                 prompt += "검색결과: \"" + searchingResult + "\"";
                 message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
@@ -338,6 +335,7 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
                 }
             }
             else if (functionName == 'route') {
+                // naver map api is needed
                 message += _msg_getChatGPTResponse(msg, style);
             }
             else {
