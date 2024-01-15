@@ -288,59 +288,66 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             //let searchingResult = JSON.stringify(functionToCall["arguments"]);
             let functionName = functionToCall["name"];
             replier.reply(MENT[_getRandomInt(MENT.length - 1)]);
-            if (functionName == 'kakaoSearchLocal') {
-                let location = JSON.parse(functionToCall.arguments).location;
-                let place = JSON.parse(functionToCall.arguments).place;
-                searchingResult += functionList[functionName](location + " " + place + "\n"); // kakao map에서 지역 + 장소 검색
-                if (searchingResult == 'null') {
+            switch (functionName) {
+                case 'kakaoSearchLocal':
+                    let location = JSON.parse(functionToCall.arguments).location;
+                    let place = JSON.parse(functionToCall.arguments).place;
+                    searchingResult += functionList[functionName](location + " " + place + "\n"); // kakao map에서 지역 + 장소 검색
+                    if (searchingResult == 'null') {
+                        message += _msg_getChatGPTResponse(msg, style);
+                        return message;
+                    }
+                    prompt += PERSONALITY_RESPONSE[style] + "검색결과에 https://로 시작하는 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
+                    prompt += "검색결과: \"" + searchingResult + "\"";
+                    message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
+                    break;
+
+                case 'naverSearchNews':
+                    let subject = JSON.parse(functionToCall.arguments).subject;
+                    let article = JSON.parse(functionToCall.arguments).article;
+                    searchingResult += functionList[functionName](subject + " " + article + "\n"); // 네이버 뉴스에서 검색
+                    if (searchingResult == 'null') {
+                        message += _msg_getChatGPTResponse(msg, style);
+                        return message;
+                    }
+                    prompt += PERSONALITY_RESPONSE[style] + "\n";
+                    prompt += "검색결과: \"" + searchingResult + "\"";
+                    message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
+                    break;
+
+                case 'naverSearchShopping':
+                    let product = JSON.parse(functionToCall.arguments).product;
+                    let price = JSON.parse(functionToCall.arguments).price;
+                    searchingResult += functionList[functionName](product + "\n"); // 네이버 쇼핑에서 검색
+                    if (searchingResult == 'null') {
+                        message += _msg_getChatGPTResponse(msg, style);
+                        return message;
+                    }
+                    prompt += PERSONALITY_RESPONSE[style] + "검색결과에 https://로 시작하는 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
+                    prompt += "검색결과: \"" + searchingResult + "\"";
+                    message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
+                    break;
+
+                case 'now':
+                    let date = JSON.parse(functionToCall.arguments).date;
+                    searchingResult += functionList[functionName](); // 현재 날짜
+                    prompt += PERSONALITY_RESPONSE[style];
+                    prompt += "검색결과: \"" + searchingResult + "\"";
+                    message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
+                    if (style == 'lazy') {
+                        message += " " + ANGRY[_getRandomInt(ANGRY.length - 1)];
+                    }
+                    break;
+
+                case 'route':
+                    // naver map api is needed
                     message += _msg_getChatGPTResponse(msg, style);
-                    return message;
-                }
-                prompt += PERSONALITY_RESPONSE[style] + "검색결과에 https://로 시작하는 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
-                prompt += "검색결과: \"" + searchingResult + "\"";
-                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
-            }
-            else if (functionName == 'naverSearchNews') {
-                let subject = JSON.parse(functionToCall.arguments).subject;
-                let article = JSON.parse(functionToCall.arguments).article;
-                searchingResult += functionList[functionName](subject + " " + article + "\n"); // 네이버 뉴스에서 검색
-                if (searchingResult == 'null') {
+                    break;
+
+                default:
+                    message += "짱구 굴리다 뚝배기터지겠다!\n";
                     message += _msg_getChatGPTResponse(msg, style);
-                    return message;
-                }
-                prompt += PERSONALITY_RESPONSE[style] + "\n";
-                prompt += "검색결과: \"" + searchingResult + "\"";
-                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
-            }
-            else if (functionName == 'naverSearchShopping') {
-                let product = JSON.parse(functionToCall.arguments).product;
-                let price = JSON.parse(functionToCall.arguments).price;
-                searchingResult += functionList[functionName](product + "\n"); // 네이버 쇼핑에서 검색
-                if (searchingResult == 'null') {
-                    message += _msg_getChatGPTResponse(msg, style);
-                    return message;
-                }
-                prompt += PERSONALITY_RESPONSE[style] + "검색결과에 https://로 시작하는 링크 정보가 있다면 답변의 마지막에는 반드시 링크를 알려줘.\n";
-                prompt += "검색결과: \"" + searchingResult + "\"";
-                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
-            }
-            else if (functionName == 'now') {
-                let date = JSON.parse(functionToCall.arguments).date;
-                searchingResult += functionList[functionName](); // 현재 날짜
-                prompt += PERSONALITY_RESPONSE[style];
-                prompt += "검색결과: \"" + searchingResult + "\"";
-                message += _msg_getChatGPTFunctionCallingResponse(prompt, style);
-                if (style == 'lazy') {
-                    message += " " + ANGRY[_getRandomInt(ANGRY.length - 1)];
-                }
-            }
-            else if (functionName == 'route') {
-                // naver map api is needed
-                message += _msg_getChatGPTResponse(msg, style);
-            }
-            else {
-                message += "짱구 굴리다 뚝배기터지겠다!\n";
-                message += _msg_getChatGPTResponse(msg, style);
+                    break;
             }
         }
         else {
