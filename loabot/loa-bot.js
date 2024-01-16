@@ -57,7 +57,7 @@ function onNotificationPosted(sbn, sm) {
     }
 }
 
-var msgList_1 = [];
+var msgLists = [];
 var style = "lazy";
 
 function adminMildo(room, msg, sender) {
@@ -119,17 +119,13 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         return;
     }
 
-    if (room == "akd") {
-        msgList_1.push(sender + " : " + msg);
-        if(msgList_1.length >= 100) {
-            msgList_1.shift();
-        }
-        if(msg == "!요약") {
-            replier.reply("요약중...");
-            var content = gptApi.msg_gptSummary(msgList_1.join("\n"), 300, sender);
-            replier.reply("대화내용 요약" + "\u200b".repeat(500) + "\n\n" + content);
-            return;
-        }
+    message = sender + ": " + msg;
+    addElementToRoom(room, message);
+    if (msg == "!요약") {
+        replier.reply("요약중...");
+        var content = gptApi.msg_gptSummary(msgLists[room].join("\n"), 300, sender);
+        replier.reply(" 대화내용 요약" + "\u200b".repeat(500) + "\n\n" + content);
+        return;
     }
 
     cmd = msg.split(" ");
@@ -235,6 +231,16 @@ function msg_help() {
     message += "!밀도야 [내용] 그려줘\n";
     message += "!도움말";
     return message;
+}
+
+function addElementToRoom(room, element) {
+    if (!msgLists.hasOwnProperty(room)) {
+        msgLists[room] = [];
+    }
+    if (msgLists[room].length >= 100) {
+        msgLists[room].shift();
+    }
+    msgLists[room].push(element);
 }
 
 function msg_nullCmd(user_name) {
