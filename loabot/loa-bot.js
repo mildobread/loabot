@@ -225,6 +225,7 @@ function msg_help() {
     message += "!이벤트\n";
     message += "!보석시세\n";
     message += "!강화재료\n";
+    message += "!요약\n";
     message += "!운세 [X띠]\n";
     message += "!날씨 [지역]\n";
     message += "!밀도야 [내용]\n";

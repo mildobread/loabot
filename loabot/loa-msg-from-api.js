@@ -8,17 +8,29 @@ function _msg_salary(user_name) {
         message += 'null\n';
     }
     else {
-        var results = JSON.parse(data);
         message += "[" + user_name + " 주급]\n";
+        var results = JSON.parse(data);
+        var server;
         var sum = 0;
+        for (let i = 0; i < results.length; i++) { // find server
+            var character = results[i];
+            if (character['CharacterName'] == user_name) {
+                server = character['ServerName'];
+                break;
+            }
+        }
+        message += '▶ ' + server + '\n';
         for (let i = 0; i < results.length; i++) {
             var character = results[i];
+            if (server != character['ServerName']) {
+                continue;
+            }
             var level = character['ItemAvgLevel'].split(",")[0] + character['ItemAvgLevel'].split(",")[1];
-            sum += salary.getSalary(Number(level));
-            var character_salary = salary.getSalary(Number(level)).toString();
-            message += character['CharacterName'] + ": " + character_salary + "G\n";
+            var week_salary = salary.getSalary(Number(level));
+            sum += week_salary;
+            message += character['CharacterName'] + ": " + week_salary.toString() + "G\n";
         }
-        message += "합계: " + sum.toString() + "G"
+        message += "♣ 합계: " + sum + "G";
     }
     return message;
 }
