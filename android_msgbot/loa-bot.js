@@ -6,6 +6,7 @@ const play = require('loa-msg-play.js');
 const loaApi = require('loa-msg-from-api.js');
 const utils = require('loa-utils.js');
 const gptApi = require('gpt-api.js');
+const ytApi = require('script-from-yt-api.js');
 
 const LOA_API_KEY = keys.LOA_API_KEY;
 const GPT_API_KEY = keys.GPT_API_KEY;
@@ -97,6 +98,15 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     var command = adminMildo(room, msg, sender);
     if (command) {
         replier.reply(command);
+        return;
+    }
+
+    // Youtube
+    if (msg.startsWith("!유튜브 ")) {
+        var message = "";
+        var subStr = msg.substr(5);
+        message += ytApi.msg_script(subStr);
+        replier.reply(message);
         return;
     }
 
