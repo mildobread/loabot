@@ -1,6 +1,6 @@
 import requests
-
-url = 'https://yt-script-ccbnl.run.goorm.site/yt/mPf5nhhadQw'
+# https://www.youtube.com/watch?v=g_wawlz1cR4
+url = 'https://yt-script-ccbnl.run.goorm.site/yt/g_wawlz1cR4'
 api_key = 'mildobread'
 
 headers = {

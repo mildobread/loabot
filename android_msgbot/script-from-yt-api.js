@@ -1,28 +1,19 @@
 function _msg_script(url) {
     var apiUrl = "https://yt-script-ccbnl.run.goorm.site/yt/" + url;
-    var data = getData(apiUrl);
-    java.lang.Thread.sleep(100);
-    var result = JSON.parse(data);
-    var script = result['script'];
-    //return script;
-    message = "";
-    if (script == 'null') {
-        message += "Subtitles are disabled for this video";
-    }
-    else {
-        message += gptApi.msg_gptSummaryScript(script)
-    }
+    var message = getData(apiUrl);
     return message;
 }
 
 function getData(url) {
-    var data = org.jsoup.Jsoup.connect(url)
+    var response = org.jsoup.Jsoup.connect(url)
         .header("accept", "application/json")
         .header("authorization", 'Bearer ' + "mildobread")
         .ignoreContentType(true)
         .ignoreHttpErrors(true)
-        .get().text();
-    return data;
+        .timeout(200000).get().text()
+    var result = JSON.parse(response);
+    var script = result['script'];
+    return script;
 }
 
 module.exports = {
