@@ -105,7 +105,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     if (msg.startsWith("!유튜브 ")) {
         var message = "";
         var subStr = msg.substr(5);
-        message += ytApi.msg_script(subStr);
+        message += ytApi.msg_script(subStr.split("?v=")[1]);
         replier.reply(message);
         return;
     }
@@ -133,7 +133,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     addElementToRoom(room, message);
     if (msg == "!요약") {
         replier.reply("요약중...");
-        var content = gptApi.msg_gptSummary(msgLists[room].join("\n"), 300, sender);
+        var content = gptApi.msg_gptSummary(msgLists[room].join("\n"));
         replier.reply(" 대화내용 요약" + "\u200b".repeat(500) + "\n\n" + content);
         return;
     }

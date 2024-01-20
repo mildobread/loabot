@@ -5,6 +5,7 @@ PERSONALITY_RESPONSE = {
     "cute": "너는 귀여운 아기시바견이야. 사용자의 다음 질문에 대해 발랄하고 사랑스럽게 300자 이내로 답변해주고 말끝에는 멍멍을 붙여.",
     "stupid": "너는 아는게 하나도 없는 멍청이야. 사용자의 다음 질문에 대해 불확실한 말투로 잘 모르겠다고 말해."
 };
+YOUTUBESCRIPT_SUMMARY = "Your job is to summarize YouTube video files to make it easier to understand the content of the entire video. The following is a YouTube video script, and please summarize it in Korean.";
 
 const MENT = ["(짱구 굴리는중...)", "(뇌세포 총동원중...)", "(발톱으로 타자치는중...)", "(끙...)", "(침흘리는중...)"];
 const ANGRY = ["멍청한놈", "한심한놈", "으휴..", "에휴.. 말을 말자", "쯧쯧.."];
@@ -101,15 +102,45 @@ function str_includes(mainString, substrings) {
     }
 }
 
-function _msg_gptSummary(msg, token, sender) {
+function _msg_gptSummary(msg) {
     let response;
     let data = {
-        "model": "gpt-3.5-turbo",
+        "model": "gpt-3.5-turbo-0613",
         "messages": [{
             "role": "system",
             "content": PERSONALITY_SUMMARY
         },{"role": "user", "content": msg}],
-        "max_tokens": token
+        "max_tokens": 512
+    }
+
+    try {
+        response = org.jsoup.Jsoup.connect("https://api.openai.com/v1/chat/completions")
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + GPT_API_KEY)
+            .requestBody(JSON.stringify(data)).ignoreHttpErrors(!0)
+            .ignoreContentType(!0)
+            .post().wholeText()
+            .trim()
+            .replace(/\x00/g,'');
+        response = JSON.parse(response);
+        let message = response.choices[0].message;
+        return message.content;
+    } catch (error) {
+        result = "오류!\n" + error + "\n" + JSON.stringify(response, null, 2);
+        Log.e(error.stack);
+        return result;
+    }
+}
+
+function _msg_gptSummaryScript(msg) {
+    let response;
+    let data = {
+        "model": "gpt-4-vision-preview",
+        "messages": [{
+            "role": "system",
+            "content": YOUTUBESCRIPT_SUMMARY
+        },{"role": "user", "content": msg}],
+        "max_tokens": 2048
     }
 
     try {
@@ -136,16 +167,16 @@ function _msg_getChatGPTResponse(msg, style) {
     let result;
 
     let data = {
-        "model": "gpt-3.5-turbo",
+        "model": "gpt-3.5-turbo-0613",
         "messages": [{
             "role": "system",
             "content": PERSONALITY_RESPONSE[style]
         },{"role":"user","content":msg}],
-        "temperature":0, 
-        "max_tokens":300,
-        "top_p":1, 
+        "temperature": 0, 
+        "max_tokens": 300,
+        "top_p": 1, 
         "frequency_penalty": 0.0, 
-        "presence_penalty":0.0
+        "presence_penalty": 0.0
     }
  
     try {
@@ -268,11 +299,11 @@ function _msg_getChatGPTFunctionCalling(msg, replier, style) {
             },
         }],
         "function_call": "auto",
-        "temperature":0, 
-        "max_tokens":300,
-        "top_p":1, 
+        "temperature": 0, 
+        "max_tokens": 300,
+        "top_p": 1, 
         "frequency_penalty": 0.8, 
-        "presence_penalty":0.0
+        "presence_penalty": 0.0
     }
  
     try {
@@ -367,16 +398,16 @@ function _msg_getChatGPTFunctionCallingResponse(msg, style) {
     let result;
 
     let data = {
-        "model": "gpt-3.5-turbo",
+        "model": "gpt-3.5-turbo-0613",
         "messages": [{
             "role": "system",
             "content": PERSONALITY_RESPONSE[style]
         },{"role":"user","content":msg}],
-        "temperature":0, 
-        "max_tokens":300,
-        "top_p":1, 
+        "temperature": 0, 
+        "max_tokens": 300,
+        "top_p": 1, 
         "frequency_penalty": 0.0, 
-        "presence_penalty":0.0
+        "presence_penalty": 0.0
     }
  
     try {
@@ -395,6 +426,7 @@ function _msg_getChatGPTFunctionCallingResponse(msg, style) {
 
 module.exports = {
     msg_gptSummary: _msg_gptSummary,
+    msg_gptSummaryScript: _msg_gptSummaryScript,
     msg_getChatGPTResponse: _msg_getChatGPTResponse,
     msg_getChatGPTFunctionCalling: _msg_getChatGPTFunctionCalling,
     msg_getChatGPTFunctionCallingResponse: _msg_getChatGPTFunctionCallingResponse,
