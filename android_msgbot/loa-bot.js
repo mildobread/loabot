@@ -20,6 +20,7 @@ const CHARACTER_TYPE = 0;
 const EVENT_TYPE = 1;
 
 const DRAW_MENT = ["(슥슥...)", "(발톱에 물감 묻히는중...)", "(좀만 기다려봐...)", "(물감 챙기는중...)", "(엉...기다려봐...)"];
+const YT_MENT = ["(크흠...)", "(머리 과부하 걸리는중...)", "(머리가 지끈지끈...)", "(좀 걸릴거야...)", "(엉...기다려봐...)"];
 
 let chatList = {}; // 대화 내용 저장
 
@@ -105,6 +106,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     if (msg.startsWith("!유튜브 ")) {
         var message = "";
         var subStr = msg.substr(5);
+        replier.reply(YT_MENT[gptApi.getRandomInt(DRAW_MENT.length - 1)]);
         message += ytApi.msg_script(subStr.split("?v=")[1]);
         replier.reply(message);
         return;
@@ -171,6 +173,9 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
                     replier.reply(cimg)
                 }
                 message = loaApi.msg_event();
+                break;
+            case "!서버":
+                message = ytApi.msg_serverAlive();
                 break;
             default:
                 message = msg_nullCmd();

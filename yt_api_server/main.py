@@ -12,6 +12,10 @@ app = FastAPI()
 API_KEY = "mildobread"
 GPT_API_KEY = "mildobread"
 api_key_header = APIKeyHeader(name="Authorization")
+YOUTUBESCRIPT_SUMMARY = """
+당신은 요약 전문가입니다. 다음 유튜브 동영상 스크립트를 보고,
+ 사용자에게 영상에 담긴 내용을 목차별로 자세히 요약해주세요.
+"""
 
 
 @app.get("/yt/{vid}")
@@ -34,10 +38,7 @@ def get_script(vid: str, api_key: str = Depends(api_key_header)):
 async def read_root(api_key: str = Depends(api_key_header)):
     if api_key != f"Bearer {API_KEY}":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-    return {"hello": "world"}
-
-
-YOUTUBESCRIPT_SUMMARY = "당신은 스크립트 요약 전문가입니다. 다음 유튜브 동영상 스크립트를 보고, 사용자에게 영상에 담긴 내용을 목차별로 자세히 요약해주세요."
+    return {"script": "server is alive."}
 
 
 def msg_gptSummaryScript(msg):
