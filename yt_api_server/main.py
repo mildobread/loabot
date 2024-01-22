@@ -38,7 +38,9 @@ def get_script(vid: str, api_key: str = Depends(api_key_header)):
 async def read_root(api_key: str = Depends(api_key_header)):
     if api_key != f"Bearer {API_KEY}":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-    return {"script": "server is alive."}
+    message = "API Server is alive."
+    print(message)
+    return {"script": message}
 
 
 def msg_gptSummaryScript(msg):
@@ -61,9 +63,10 @@ def msg_gptSummaryScript(msg):
         if response.status_code == 200:
             print('요청이 성공했습니다.')
             print('응답 내용:', response_data)
+            message = response_data['choices'][0]['message']['content']
         else:
-            print(f'요청이 실패했습니다. 상태 코드: {response.status_code}')
-        message = response_data['choices'][0]['message']['content']
+            message = f'요청이 실패했습니다. 상태 코드: {response.status_code}'
+            print(message)
         return message
     except Exception as e:
         result = f"오류!\n{str(e)}\n{json.dumps(response, indent=2)}"

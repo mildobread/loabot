@@ -1,11 +1,11 @@
 function _msg_script(url) {
-    var apiUrl = "https://yt-script-ccbnl.run.goorm.site/yt/" + url;
+    var apiUrl = "http://34.64.55.17:5000/yt/" + url;
     var message = getData(apiUrl);
     return message;
 }
 
 function _msg_serverAlive(url) {
-    var apiUrl = "https://yt-script-ccbnl.run.goorm.site/";
+    var apiUrl = "http://34.64.55.17:5000/";
     var message = getData(apiUrl);
     return message;
 }
@@ -16,10 +16,20 @@ function getData(url) {
         .header("authorization", 'Bearer ' + "mildobread")
         .ignoreContentType(true)
         .ignoreHttpErrors(true)
-        .get().text()
-    var result = JSON.parse(response);
-    var script = result['script'];
-    return script;
+        .timeout(250000)
+        .execute()
+    var statusCode = response.statusCode();
+    if (statusCode >= 200 && statusCode < 300) {
+        var result = JSON.parse(response.parse().text());
+        var script = result['script'];
+        return script;
+    }
+    else {
+        message = "API Server is closed.\n";
+        message += "Error Response - Status Code: " + statusCode + "\n";
+        message += "Response Body: " + result;
+        return message;
+    }
 }
 
 module.exports = {
