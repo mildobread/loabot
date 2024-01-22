@@ -107,7 +107,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         var message = "";
         var subStr = msg.substr(5);
         replier.reply(YT_MENT[gptApi.getRandomInt(DRAW_MENT.length - 1)]);
-        message += ytApi.msg_script(subStr.split("?v=")[1]);
+        message += ytApi.msg_script(subStr);
         replier.reply(message);
         return;
     }
