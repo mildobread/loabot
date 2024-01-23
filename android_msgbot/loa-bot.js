@@ -62,77 +62,14 @@ function onNotificationPosted(sbn, sm) {
 var msgLists = [];
 var style = "lazy";
 
-function adminMildo(room, msg, sender) {
-    // GPT - admin
-    if (msg.startsWith("/") && (sender == "Mine" || sender == "낙지볶음" || sender == "니나브/밀도식빵/블레이드")) {
-        var personality = msg.substr(1);
-        var message = "";
-        if (personality == "lazy") {
-            style = personality;
-            message += "매운맛 밀도 세팅 완료.";
-        }
-        else if (personality == "kind") {
-            style = personality;
-            message += "순한맛 밀도 세팅 완료.";
-        }
-        else if (personality == "cute") {
-            style = personality;
-            message += "귀여운 밀도 세팅 완료.";
-        }
-        else if (personality == "stupid") {
-            style = personality;
-            message += "멍청한 밀도 세팅 완료.";
-        }
-        else {
-            message += "세팅할 수 없는 성격입니다.";
-            return null;
-        }
-        return message;
-    }
-    else {
-        return null;
-    }
-}
-
 function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, isMultiChat) {
-    // GPT - admin
-    var command = adminMildo(room, msg, sender);
-    if (command) {
-        replier.reply(command);
-        return;
-    }
+    // Unsaved messages
+    if (adminMildo(room, msg, sender, replier)) return;
+    if (youtube_summarization(msg, replier)) return;
+    if (gpt_response(msg, replier)) return;
 
-    // Youtube
-    if (msg.startsWith("!유튜브 ")) {
-        var message = "";
-        var subStr = msg.substr(5);
-        replier.reply(YT_MENT[gptApi.getRandomInt(DRAW_MENT.length - 1)]);
-        message += ytApi.msg_script(subStr);
-        replier.reply(message);
-        return;
-    }
-
-    // GPT
-    if (msg.startsWith("!밀도야 ")) {
-        var message = "";
-        var karloPrompt = "";
-        var drawRequest = "그려줘";
-        var subStr = msg.substr(5);
-        var prompt = subStr;
-        if (subStr.includes(drawRequest)) {
-            replier.reply(DRAW_MENT[gptApi.getRandomInt(DRAW_MENT.length - 1)]);
-            karloPrompt = subStr.split(drawRequest)[0].trim();
-            message += utils.msg_draw(karloPrompt);
-        }
-        else {
-            message += gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
-        }
-        replier.reply(message);
-        return;
-    }
-
-    message = sender + ": " + msg;
-    addElementToRoom(room, message);
+    // Saved messages
+    addElementToRoom(room, msg, sender);
     if (msg == "!요약") {
         replier.reply("요약중...");
         var content = gptApi.msg_gptSummary(msgLists[room].join("\n"));
@@ -243,13 +180,15 @@ function msg_help() {
     message += "!요약\n";
     message += "!운세 [X띠]\n";
     message += "!날씨 [지역]\n";
+    message += "!유튜브 [링크]\n";
     message += "!밀도야 [내용]\n";
     message += "!밀도야 [내용] 그려줘\n";
     message += "!도움말";
     return message;
 }
 
-function addElementToRoom(room, element) {
+function addElementToRoom(room, msg, sender) {
+    element = sender + ": " + msg;
     if (!msgLists.hasOwnProperty(room)) {
         msgLists[room] = [];
     }
@@ -262,4 +201,72 @@ function addElementToRoom(room, element) {
 function msg_nullCmd(user_name) {
     var message = "뭔개소리여";
     return message;
+}
+
+function adminMildo(room, msg, sender, replier) {
+    // GPT - admin
+    if (msg.startsWith("/") && (sender == "Mine" || sender == "낙지볶음" || sender == "니나브/밀도식빵/블레이드")) {
+        var personality = msg.substr(1);
+        var message = "";
+        if (personality == "lazy") {
+            style = personality;
+            message += "매운맛 밀도 세팅 완료.";
+        }
+        else if (personality == "kind") {
+            style = personality;
+            message += "순한맛 밀도 세팅 완료.";
+        }
+        else if (personality == "cute") {
+            style = personality;
+            message += "귀여운 밀도 세팅 완료.";
+        }
+        else if (personality == "stupid") {
+            style = personality;
+            message += "멍청한 밀도 세팅 완료.";
+        }
+        else {
+            message += "세팅할 수 없는 성격입니다.";
+        }
+        replier.reply(message);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+function youtube_summarization(msg, replier) {
+    if (msg.startsWith("!유튜브 ")) {
+        var message = "";
+        var subStr = msg.substr(5);
+        replier.reply(YT_MENT[gptApi.getRandomInt(DRAW_MENT.length - 1)]);
+        message += ytApi.msg_script(subStr);
+        replier.reply(message);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+function gpt_response(msg, replier) {
+    if (msg.startsWith("!밀도야 ")) {
+        var message = "";
+        var drawRequest = "그려줘";
+        var subStr = msg.substr(5);
+        var prompt = subStr;
+        if (subStr.includes(drawRequest)) {
+            replier.reply(DRAW_MENT[gptApi.getRandomInt(DRAW_MENT.length - 1)]);
+            var karloPrompt = subStr.split(drawRequest)[0].trim();
+            message += utils.msg_draw(karloPrompt);
+        }
+        else {
+            message += gptApi.msg_getChatGPTFunctionCalling(prompt, replier, style)
+        }
+        replier.reply(message);
+        return true;
+    }
+    else {
+        return false;
+    }
 }
