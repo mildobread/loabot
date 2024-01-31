@@ -88,6 +88,7 @@ function _msg_equip(user_name) {
         var sumElixir = 0;
         var sumOver = 0;
         var sumQuality = 0;
+        var sumHighEnforce = 0;
         message += "닉네임: " + user_name + "\n";
         for (let i = 0; i < 6; i++) {
             var tooltip = JSON.parse(results[i]['Tooltip']);
@@ -106,6 +107,13 @@ function _msg_equip(user_name) {
                     overStr = "Element_009"; // 엘릭서는 09번으로
                     overLvl = String(tooltip['Element_008']['value']['Element_000']['topStr']).split('[초월]')[1].split('단계')[0];
                     sumOver += Number(overLvl);
+                }
+                else { // 초월이 7번에 박힌경우
+                    if (typeof tooltip['Element_007']['value']['Element_000'] == 'object') {
+                        isOver = String(tooltip['Element_007']['value']['Element_000']['topStr']).includes('초월')
+                        overLvl = String(tooltip['Element_007']['value']['Element_000']['topStr']).split('[초월]')[1].split('단계')[0];
+                        sumOver += Number(overLvl);
+                    }
                 }
                 elixir = tooltip[overStr]['value']['Element_000']['contentStr'];
                 pattern = /Lv\.(\d+)/g;
@@ -129,6 +137,9 @@ function _msg_equip(user_name) {
                     message += '\n ♣ [초월]' + overLvl + '단계';
                 }
                 message += '\n';
+            }
+            if (String(tooltip['Element_005']['value']).includes('상급 재련')) {
+                message += ' ◈ ' + tooltip['Element_005']['value'] + '\n';
             }
             if (!isOver && !elixir && i == 5) {
                 message += '\n';
