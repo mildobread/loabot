@@ -22,7 +22,8 @@ const EVENT_TYPE = 1;
 const DRAW_MENT = ["(슥슥...)", "(발톱에 물감 묻히는중...)", "(좀만 기다려봐...)", "(물감 챙기는중...)", "(엉...기다려봐...)"];
 const YT_MENT = ["(크흠...)", "(머리 과부하 걸리는중...)", "(머리가 지끈지끈...)", "(좀 걸릴거야...)", "(엉...기다려봐...)"];
 
-let chatList = {}; // 대화 내용 저장
+var msgLists = [];
+var style = "lazy";
 
 function onNotificationPosted(sbn, sm) {
     var packageName = sbn.getPackageName();
@@ -58,9 +59,6 @@ function onNotificationPosted(sbn, sm) {
         }
     }
 }
-
-var msgLists = [];
-var style = "lazy";
 
 function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, isMultiChat) {
     // Unsaved messages
