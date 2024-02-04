@@ -1,6 +1,7 @@
 function _getSalary(level) {
     var sum = 0;
     var kamen = false;
+    var echidna = false;
     var abrel = false;
     var sangatap = false;
     var iliakhan = false;
@@ -15,9 +16,19 @@ function _getSalary(level) {
         kamen = true;
         gold_count--;
     }
+    if (level >= 1630 && gold_count) { // 에키드나 하드
+        sum += 18500;
+        echidna = true;
+        gold_count--;
+    }
     if (level >= 1620 && gold_count) { // 상아탑 하드 1-4
         sum += 14500;
         sangatap = true;
+        gold_count--;
+    }
+    if (level >= 1620 && gold_count && !echidna) { // 에키드나 노말
+        sum += 14500;
+        echidna = true;
         gold_count--;
     }
     if (level >= 1610 && gold_count && !kamen) { // 카멘 노말 1-3
