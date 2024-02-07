@@ -1,4 +1,4 @@
-# Kakaotalk LostArk AI ChatBot
+# Kakaotalk LostArk 군장검사봇
 Messengerbot R 기반 챗봇입니다.
 
 ```
