@@ -1,5 +1,7 @@
 const salary = require('loa-salary.js');
 
+const INTERNAL = 0;
+
 function _msg_salary(user_name) {
     var url = "https://developer-lostark.game.onstove.com/characters/" + user_name + "/siblings";
     var data = getData(url);
@@ -75,7 +77,7 @@ function _msg_foundation(user_name) {
     return message;
 }
 
-function _msg_equip(user_name) {
+function _msg_equip(user_name, type) {
     var url = "https://developer-lostark.game.onstove.com/armories/characters/" + user_name + "/equipment";
     var data = getData(url);
     var message = "[캐릭터 장비 정보]\n";
@@ -85,69 +87,71 @@ function _msg_equip(user_name) {
     }
     else {
         var results = JSON.parse(data);
+        var isSpecialEffect = false;
+
         var sumElixir = 0;
-        var sumOver = 0;
         var sumQuality = 0;
-        var sumHighEnforce = 0;
-        message += "닉네임: " + user_name + "\n";
+        var sumOverwlm = 0;
+
+        message += '닉네임: ' + user_name + '\n\n';
         for (let i = 0; i < 6; i++) {
-            var tooltip = JSON.parse(results[i]['Tooltip']);
-            var overStr = "Element_008";
-            var element = tooltip[overStr]['value']['Element_000'];
-            var quality_value = tooltip['Element_001']['value']['qualityValue'];
             var equip_name = results[i]['Name'];
-            var isOver;
-            var elixir;
-            var pattern;
-            message += '\n' + equip_name + ' [' + quality_value + ']';
-            sumQuality += Number(quality_value);
-            if (i > 0 && element && typeof element == 'object' && 'topStr' in element) { // 엘릭서 or 초월이 존재
-                var isOver = String(tooltip[overStr]['value']['Element_000']['topStr']).includes('초월'); // 08번에 초월 존재
-                if (isOver) { // 초월 O
-                    overStr = "Element_009"; // 엘릭서는 09번으로
-                    overLvl = String(tooltip['Element_008']['value']['Element_000']['topStr']).split('[초월]')[1].split('단계')[0];
-                    sumOver += Number(overLvl);
-                }
-                else { // 초월이 7번에 박힌경우
-                    if (typeof tooltip['Element_007']['value']['Element_000'] == 'object') {
-                        isOver = String(tooltip['Element_007']['value']['Element_000']['topStr']).includes('초월')
-                        overLvl = String(tooltip['Element_007']['value']['Element_000']['topStr']).split('[초월]')[1].split('단계')[0];
-                        sumOver += Number(overLvl);
+            var tooltip = JSON.parse(results[i]['Tooltip']);
+            var quality_value = tooltip['Element_001']['value']['qualityValue'];
+            var effect = 'Element_';
+
+            var elixirString = '';
+            var overwlString = '';
+            var highenString = '';
+
+            for (let j = 5; j <= 10; j++) {
+                var key = effect + String(j).padStart(3, '0');
+                var stringify = JSON.stringify(tooltip[key])
+                if (stringify == undefined) break;
+                if (stringify.includes("엘릭서 효과")) {
+                    var elixir = tooltip[key]['value']['Element_000']['contentStr'];
+                    var pattern = /Lv\.(\d+)/g;
+                    for (let k = 0; k < 2; k++) {
+                        var option_key = effect + String(k).padStart(3, '0');
+                        if (elixir && elixir[option_key]) {
+                            var elixir_op = elixir[option_key]['contentStr'];
+                            var match = pattern.exec(elixir_op);
+                            var elixir_op_lvl = match[1];
+                            sumElixir += Number(elixir_op_lvl);
+                            elixirString += '\n ▶ [엘릭서] - ' + elixir_op.split(match[0])[0] + match[0];
+                            pattern.lastIndex = 0;
+                            isSpecialEffect = true;
+                        }
                     }
                 }
-                elixir = tooltip[overStr]['value']['Element_000']['contentStr'];
-                pattern = /Lv\.(\d+)/g;
+                else if (stringify.includes('초월')) {
+                    var overLvlStr = String(tooltip[key]['value']['Element_000']['topStr']).split('[초월]')[1].split('단계')[0];
+                    overwlString += ' ♣ [초월] -' + overLvlStr + '단계';
+                    sumOverwlm += Number(overLvlStr);
+                    isSpecialEffect = true;
+                }
+                else if (stringify.includes('상급 재련')) {
+                    highenString += ' ◈ [상급 재련] - ' + tooltip[key]['value'].split('[상급 재련]')[1];
+                    isSpecialEffect = true;
+                }
+            }
+            sumQuality += Number(quality_value);
 
-                if (elixir && elixir["Element_000"]) {
-                    var elixir_op1 = elixir["Element_000"]["contentStr"];
-                    var match1 = pattern.exec(elixir_op1);
-                    var elixir_op1_lvl = match1[1];
-                    sumElixir += Number(elixir_op1_lvl);
-                    message += '\n ▶ ' + elixir_op1.split(match1[0])[0] + match1[0];
-                    pattern.lastIndex = 0;
-                }
-                if (elixir && elixir["Element_001"]) {
-                    var elixir_op2 = elixir["Element_001"]["contentStr"];
-                    var match2 = pattern.exec(elixir_op2);
-                    var elixir_op2_lvl = match2[1];
-                    sumElixir += Number(elixir_op2_lvl);
-                    message += '\n ▶ ' + elixir_op2.split(match2[0])[0] + match2[0];
-                }
-                if (isOver) {
-                    message += '\n ♣ [초월]' + overLvl + '단계';
-                }
-                message += '\n';
-            }
-            if (String(tooltip['Element_005']['value']).includes('상급 재련')) {
-                message += ' ◈ ' + tooltip['Element_005']['value'] + '\n';
-            }
-            if (!isOver && !elixir && i == 5) {
-                message += '\n';
-            }
+            message += equip_name + ' [' + quality_value + ']';
+            if (elixirString) message += elixirString + '\n';
+            if (overwlString) message += overwlString + '\n';
+            if (highenString) message += highenString + '\n';
+            message += '\n';
         }
-        message += "\n장비 품질 평균: " + (sumQuality/6).toFixed(2) + '\n';
-        message += "엘릭서 합계: " + sumElixir + '\n';
-        message += "초월 합계: " + sumOver;
+        var retmsg = '';
+        retmsg += '엘릭서 합계: ' + sumElixir + '\n';
+        retmsg += '초월 합계: ' + sumOverwlm;
+
+        if (!isSpecialEffect) message += '\n';
+        message += '장비 품질 평균: ' + (sumQuality/6).toFixed(2) + '\n';
+        message += retmsg;
+
+        if (type == INTERNAL) return retmsg;
     }
     return message;
 }
@@ -199,6 +203,7 @@ function _msg_profile(user_name) {
         message += "지/담/매: " + results['Tendencies'][0]['Point'] + '/' + results['Tendencies'][1]['Point'] + '/' + results['Tendencies'][2]['Point'] + "\n";
         message += _msg_card(cmd[1]);
         message += _msg_engraving(cmd[1]);
+        message += _msg_equip(cmd[1], INTERNAL);
     }
     return message;
 }
@@ -237,7 +242,7 @@ function _msg_engraving(user_name) {
             message += "/";
         }
     }
-    return message;
+    return message + '\n';
 }
 
 function _msg_event() {

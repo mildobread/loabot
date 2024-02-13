@@ -21,6 +21,7 @@ const EVENT_TYPE = 1;
 
 const DRAW_MENT = ["(슥슥...)", "(발톱에 물감 묻히는중...)", "(좀만 기다려봐...)", "(물감 챙기는중...)", "(엉...기다려봐...)"];
 const YT_MENT = ["(크흠...)", "(머리 과부하 걸리는중...)", "(머리가 지끈지끈...)", "(좀 걸릴거야...)", "(엉...기다려봐...)"];
+const EXTERNAL = 1;
 
 var msgLists = [];
 var style = "lazy";
@@ -121,7 +122,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     else if (cmd.length >= 2) {
         switch (cmd[0]) {
             case "!장비":
-                message = loaApi.msg_equip(cmd[1]);
+                message = loaApi.msg_equip(cmd[1], EXTERNAL);
                 break;
             case "!정보":
                 cimg = utils.character_image(cmd[1]);
