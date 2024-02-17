@@ -95,7 +95,12 @@ function _msg_equip(user_name, type) {
 
         message += '닉네임: ' + user_name + '\n\n';
         for (let i = 0; i < 6; i++) {
+            if (!results[i]['Name'].startsWith('+')) {
+                message += '장비를 제대로 안끼고있음';
+                return message;
+            }
             var equip_name = results[i]['Name'];
+
             var tooltip = JSON.parse(results[i]['Tooltip']);
             var quality_value = tooltip['Element_001']['value']['qualityValue'];
             var effect = 'Element_';
