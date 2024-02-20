@@ -109,6 +109,7 @@ function _msg_equip(user_name, type) {
             var overwlString = '';
             var highenString = '';
 
+            isSpecialEffect = false;
             for (let j = 5; j <= 10; j++) {
                 var key = effect + String(j).padStart(3, '0');
                 var stringify = JSON.stringify(tooltip[key])
@@ -131,21 +132,22 @@ function _msg_equip(user_name, type) {
                 }
                 else if (stringify.includes('초월')) {
                     var overLvlStr = String(tooltip[key]['value']['Element_000']['topStr']).split('[초월]')[1].split('단계')[0];
-                    overwlString += ' ♣ [초월] -' + overLvlStr + '단계';
+                    overwlString += '\n ♣ [초월] -' + overLvlStr + '단계';
                     sumOverwlm += Number(overLvlStr);
                     isSpecialEffect = true;
                 }
                 else if (stringify.includes('상급 재련')) {
-                    highenString += ' ◈ [상급 재련] - ' + tooltip[key]['value'].split('[상급 재련]')[1];
+                    highenString += '\n ◈ [상급 재련] - ' + tooltip[key]['value'].split('[상급 재련]')[1];
                     isSpecialEffect = true;
                 }
             }
             sumQuality += Number(quality_value);
 
             message += equip_name + ' [' + quality_value + ']';
-            if (elixirString) message += elixirString + '\n';
-            if (overwlString) message += overwlString + '\n';
-            if (highenString) message += highenString + '\n';
+            if (elixirString) message += elixirString;
+            if (overwlString) message += overwlString;
+            if (highenString) message += highenString;
+            if (isSpecialEffect) message += '\n';
             message += '\n';
         }
         var retmsg = '';
