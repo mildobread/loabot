@@ -22,6 +22,7 @@ const EVENT_TYPE = 1;
 const DRAW_MENT = ["(슥슥...)", "(발톱에 물감 묻히는중...)", "(좀만 기다려봐...)", "(물감 챙기는중...)", "(엉...기다려봐...)"];
 const YT_MENT = ["(크흠...)", "(머리 과부하 걸리는중...)", "(머리가 지끈지끈...)", "(좀 걸릴거야...)", "(엉...기다려봐...)"];
 const EXTERNAL = 1;
+const WELCOME = "🙌🏻 어서오세요 반갑습니다 🙌🏻";
 
 var msgLists = [];
 var style = "lazy";
@@ -66,6 +67,14 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
     if (adminMildo(room, msg, sender, replier)) return;
     if (youtube_summarization(msg, replier)) return;
     if (gpt_response(msg, replier)) return;
+
+    // Welcome message
+    if (msg.startsWith(WELCOME)) {
+        message = "반갑습니다! 아래 설명에 따라 밀도봇을 이용해보세요.\n\n"
+        message += msg_help();
+        replier.reply(message);
+        return;
+    }
 
     // Saved messages
     addElementToRoom(room, msg, sender);
@@ -199,6 +208,9 @@ function addElementToRoom(room, msg, sender) {
 
 function msg_nullCmd(user_name) {
     var message = "뭔개소리여";
+    if (Math.random() < 0.5) {
+        message += ".. 어떻게 쓰는지 모르겠으면 '!도움말' 명령을 참고해봐."
+    }
     return message;
 }
 
