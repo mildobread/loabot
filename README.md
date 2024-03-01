@@ -1,5 +1,6 @@
 # Kakaotalk LostArk 군장검사봇
 Messengerbot R 기반 챗봇입니다.
+2024-03-01
 
 ```
 [현재 구현된 기능]
